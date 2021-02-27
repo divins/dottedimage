@@ -1,8 +1,14 @@
 <template>
   <div class="hello">
     <div class="navbar">
+      <ul>
+        <li>Cols: {{ gridInfo.cols }}</li>
+        <li>Rows: {{ gridInfo.rows }}</li>
+        <li>Artifacts: {{ gridInfo.artifactsCount }}</li>
+      </ul>
       <input type="file" accept="image/*" @input="upload" />
       <button @click="process">Process</button>
+      <!--<button @click="cleanScene">Clean</button>-->
     </div>
     <img id="output_image" />
     <canvas class="webgl"></canvas>
@@ -41,7 +47,13 @@ export default {
         width: 0,
         height: 0
       },
-      positionMultiplier: 0.01
+      positionMultiplier: 0.01,
+      canvasMultiplier: 1,
+      gridInfo: {
+        cols: null,
+        rows: null,
+        artifactsCount: null
+      }
     };
   },
   methods: {
@@ -57,8 +69,8 @@ export default {
     setCanvas: function() {
       // Update sizes
       let output = document.getElementById("output_image");
-      this.sizes.width = output.width * 2;
-      this.sizes.height = output.height * 2;
+      this.sizes.width = output.width * this.canvasMultiplier;
+      this.sizes.height = output.height * this.canvasMultiplier;
 
       // Update camera
       camera.aspect = this.sizes.width / this.sizes.height;
@@ -86,12 +98,13 @@ export default {
       var ctx = canvas.getContext("2d");
       ctx.drawImage(output, 0, 0, output.width, output.height);
 
-      const cols = Math.round(output.width / this.gridOptions.spacingX);
-      const rows = Math.round(output.height / this.gridOptions.spacingY);
+      this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
+      this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
+      this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
 
-      for (let i = 0; i < cols; i++) {
+      for (let i = 0; i < this.gridInfo.cols; i++) {
         const posX = i * this.gridOptions.spacingX;
-        for (let z = 0; z < rows; z++) {
+        for (let z = 0; z < this.gridInfo.rows; z++) {
           const posY = z * this.gridOptions.spacingY;
           var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
           let material = new THREE.MeshBasicMaterial();
@@ -114,6 +127,17 @@ export default {
         }
       }
       renderer.render(scene, camera);
+    },
+    cleanScene: function() {
+      console.log(scene.children.length);
+      console.log(scene.children[0]);
+      console.log(renderer.info);
+      for (const mesh in scene.children) {
+        scene.remove(mesh);
+        console.log(mesh);
+      }
+      console.log(scene.children.length);
+      console.log(renderer.info);
     },
     init: function() {
       canvas = document.querySelector("canvas.webgl");
@@ -220,6 +244,7 @@ a {
   color: #42b983;
 }
 canvas {
-  height: 500px;
+  width: 0px;
+  height: 0px;
 }
 </style>
