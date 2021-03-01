@@ -28,6 +28,10 @@ let renderer = null;
 let controls = null;
 const clock = new THREE.Clock();
 
+let geometry = null;
+let material = null;
+let points = null;
+
 const gui = new dat.GUI();
 let stats = new Stats();
 
@@ -88,7 +92,7 @@ export default {
       renderer.setSize(this.sizes.width, this.sizes.height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     },
-    process: function() {
+    process() {
       this.setCanvas();
 
       var output = document.getElementById("output_image");
@@ -102,30 +106,43 @@ export default {
       this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
 
+      geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(this.gridInfo.artifactsCount * 3);
+      const colors = new Float32Array(this.gridInfo.artifactsCount * 3);
+
       for (let i = 0; i < this.gridInfo.cols; i++) {
         const posX = i * this.gridOptions.spacingX;
         for (let z = 0; z < this.gridInfo.rows; z++) {
+          const i3 = (i * this.gridInfo.rows + z) * 3;
+
           const posY = z * this.gridOptions.spacingY;
           var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
-          let material = new THREE.MeshBasicMaterial();
-          material.color = new THREE.Color(
-            `rgb(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`
-          );
-          material.side = THREE.DoubleSide;
-          let sphere = new THREE.Mesh(
-            new THREE.CircleGeometry(
-              (Math.random() * (0.1 - 0.04) + 0.04) *
-                this.gridOptions.sizeScaleMultiplier,
-              16
-            ),
-            material
-          );
-          sphere.position.x = posX * this.positionMultiplier;
-          sphere.position.y = (output.height - posY) * this.positionMultiplier;
-          sphere.position.z = Math.random() * 0.5;
-          scene.add(sphere);
+
+          positions[i3] = posX * this.positionMultiplier;
+          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
+          positions[i3 + 2] = Math.random() * 0.5;
+
+          colors[i3] = pixelData[0] / 255;
+          colors[i3 + 1] = pixelData[1] / 255;
+          colors[i3 + 2] = pixelData[2] / 255;
         }
       }
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+      material = new THREE.PointsMaterial({
+        size: 0.1,
+        sizeAttenuation: true,
+        vertexColors: true
+      });
+
+      // Points
+      points = new THREE.Points(geometry, material);
+      scene.add(points);
+
       renderer.render(scene, camera);
     },
     cleanScene: function() {
@@ -147,7 +164,7 @@ export default {
         70,
         canvas.clientWidth / canvas.clientHeight,
         0.01,
-        10
+        100
       );
       camera.position.z = 2;
 
@@ -167,16 +184,19 @@ export default {
         .min(5)
         .max(100)
         .step(1);
+        //.onFinishChange(process);
       gui
         .add(this.gridOptions, "spacingY")
         .min(5)
         .max(100)
         .step(1);
+        //.onFinishChange(process);
       gui
         .add(this.gridOptions, "sizeScaleMultiplier")
         .min(0.1)
         .max(3)
         .step(0.1);
+        //.onFinishChange(process);
     },
     seedRand: function(min, max, seed) {
       min = min || 0;
@@ -195,9 +215,10 @@ export default {
     },
     animate: function() {
       const elapsedTime = clock.getElapsedTime();
-
-      if (scene.children.length > 2) {
-        for (const [id, circle] of scene.children.entries()) {
+      elapsedTime;
+      if (points !== null) {
+        //console.log(points.children)
+        /*for (const [id, point] of points.entries()) {
           let scale = null;
           if (id % 2) {
             scale =
@@ -210,9 +231,15 @@ export default {
                 Math.cos(elapsedTime + this.seedRand(undefined, undefined, id))
               ) + 0.15;
           }
-          circle.scale.set(scale, scale, scale);
-        }
+          point.material.size = scale;
+        }*/
       }
+
+    /*   if (points !== null) {
+        console.log(points.material.size);
+
+        //geometry.attributes.position.needsUpdate = true;
+      } */
 
       stats.update();
       controls.update();
