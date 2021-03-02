@@ -63,6 +63,11 @@ export default {
         rows: null,
         artifactsCount: null
       },
+      animationOptions: {
+        animate: false,
+        zDisplacement: 0.2
+      },
+      particleTexture: null,
       gui: null
     };
   },
@@ -99,6 +104,7 @@ export default {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     },
     process() {
+      this.cleanScene();
       this.setCanvas();
 
       var output = document.getElementById("output_image");
@@ -125,13 +131,14 @@ export default {
           const posY = z * this.gridOptions.spacingY;
           var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
 
-          positions[i3] = posX * this.positionMultiplier;
-          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
-          positions[i3 + 2] = Math.random() * 0.5;
-
           colors[i3] = pixelData[0] / 255;
           colors[i3 + 1] = pixelData[1] / 255;
           colors[i3 + 2] = pixelData[2] / 255;
+
+          positions[i3] = posX * this.positionMultiplier;
+          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
+          positions[i3 + 2] = Math.random() * 0.5;
+          //positions[i3 + 2] = ((pixelData[0] + pixelData[1] + pixelData[2]) / 3) / 255 * 0.5;
 
           const scale = Math.random() + 10;
           scales[i3] = scale;
@@ -146,14 +153,14 @@ export default {
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       geometry.setAttribute("scale", new THREE.BufferAttribute(scales, 3));
 
-      console.log(particleCustomTexture);
       material = new THREE.PointsMaterial({
         size: this.gridOptions.particleSize,
         sizeAttenuation: true,
         vertexColors: true,
         alphaMap: particleCustomTexture,
         depthWrite: false,
-        transparent: true
+        transparent: true,
+        //blending: THREE.AdditiveBlending
       });
 
       // Points
@@ -164,7 +171,6 @@ export default {
     },
     cleanScene: function() {
       if (points !== null) {
-        console.log("cleaning scene")
         geometry.dispose();
         material.dispose();
         scene.remove(points);
@@ -174,6 +180,12 @@ export default {
       this.gridInfo.rows = null;
       this.gridInfo.artifactsCount = null;
     },
+    reprocess() {
+      return () => {
+        this.cleanScene();
+        this.process();
+      };
+    },
     setGuiControls: function() {
       this.gui = new dat.GUI();
       this.gui
@@ -181,22 +193,29 @@ export default {
         .name("X Space")
         .min(5)
         .max(50)
-        .step(5);
-        //.onFinishChange(process);
+        .step(5)
+        .onFinishChange(this.reprocess());
       this.gui
         .add(this.gridOptions, "spacingY")
         .name("Y Space")
         .min(5)
         .max(50)
-        .step(5);
-        //.onFinishChange(process);
+        .step(5)
+        .onFinishChange(this.reprocess());
       this.gui
         .add(this.gridOptions, "particleSize")
         .name("Particle size")
         .min(0.1)
         .max(1.5)
-        .step(0.1);
-        //.onFinishChange(process);
+        .step(0.1)
+        .onFinishChange(this.reprocess());
+      this.gui
+        .add(this.animationOptions, "zDisplacement")
+        .name("Z Displacement")
+        .min(0.2)
+        .max(5)
+        .step(0.2);
+      this.gui.add(this.animationOptions, "animate");
     },
     initCanvas: function() {
       canvas = document.querySelector("canvas.webgl");
@@ -239,46 +258,20 @@ export default {
     animate: function() {
       const elapsedTime = clock.getElapsedTime();
 
-      if (geometry !== null) {
+      if (this.animationOptions.animate && geometry !== null) {
         for (let i = 0; i < this.gridInfo.artifactsCount; i++) {
           const i3 = i * 3; // it gets the index of the position vector for each particle
           const z = geometry.attributes.position.array[i3 + 2];
           z;
-          //geometry.attributes.position.array[i3 + 2] = Math.sin(elapsedTime + this.seedRand(undefined, undefined, i3)) + z;
-          //geometry.attributes.position.array[i3 + 2] = Math.sin(elapsedTime + this.seedRand(undefined, undefined, i3));
+
           if (i3 % 2) {
-            geometry.attributes.position.array[i3 + 2] = Math.sin(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * 0.1;
+            geometry.attributes.position.array[i3 + 2] = Math.sin(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * this.animationOptions.zDisplacement;
           } else {
-            geometry.attributes.position.array[i3 + 2] = Math.cos(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * 0.05;
+            geometry.attributes.position.array[i3 + 2] = Math.cos(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * this.animationOptions.zDisplacement;
           }
         }
         geometry.attributes.position.needsUpdate = true;
       }
-
-      if (points !== null) {
-        //console.log(points.children)
-        /*for (const [id, point] of points.entries()) {
-          let scale = null;
-          if (id % 2) {
-            scale =
-              Math.abs(
-                Math.sin(elapsedTime + this.seedRand(undefined, undefined, id))
-              ) + 0.15;
-          } else {
-            scale =
-              Math.abs(
-                Math.cos(elapsedTime + this.seedRand(undefined, undefined, id))
-              ) + 0.15;
-          }
-          point.material.size = scale;
-        }*/
-      }
-
-    /*   if (points !== null) {
-        console.log(points.material.size);
-
-        //geometry.attributes.position.needsUpdate = true;
-      } */
 
       stats.update();
       controls.update();
