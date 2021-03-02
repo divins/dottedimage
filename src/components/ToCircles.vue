@@ -20,19 +20,12 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
-
 let canvas = null;
 let scene = null;
 let camera = null;
 let renderer = null;
 let controls = null;
 const clock = new THREE.Clock();
-
-let geometry = null;
-let material = null;
-let points = null;
-
-const gui = new dat.GUI();
 let stats = new Stats();
 
 export default {
@@ -57,7 +50,8 @@ export default {
         cols: null,
         rows: null,
         artifactsCount: null
-      }
+      },
+      gui: null
     };
   },
   methods: {
@@ -75,7 +69,6 @@ export default {
       let output = document.getElementById("output_image");
       this.sizes.width = output.width * this.canvasMultiplier;
       this.sizes.height = output.height * this.canvasMultiplier;
-
       // Update camera
       camera.aspect = this.sizes.width / this.sizes.height;
       camera.position.x = (output.width / 2) * this.positionMultiplier;
@@ -87,116 +80,97 @@ export default {
         0
       );
       camera.updateProjectionMatrix();
-
       // Update renderer
       renderer.setSize(this.sizes.width, this.sizes.height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     },
-    process() {
+    process: function() {
       this.setCanvas();
-
       var output = document.getElementById("output_image");
       var canvas = document.createElement("canvas");
       canvas.width = output.width;
       canvas.height = output.height;
       var ctx = canvas.getContext("2d");
       ctx.drawImage(output, 0, 0, output.width, output.height);
-
       this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
       this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
-
-      geometry = new THREE.BufferGeometry();
-      const positions = new Float32Array(this.gridInfo.artifactsCount * 3);
-      const colors = new Float32Array(this.gridInfo.artifactsCount * 3);
-
       for (let i = 0; i < this.gridInfo.cols; i++) {
         const posX = i * this.gridOptions.spacingX;
         for (let z = 0; z < this.gridInfo.rows; z++) {
-          const i3 = (i * this.gridInfo.rows + z) * 3;
-
           const posY = z * this.gridOptions.spacingY;
           var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
-
-          positions[i3] = posX * this.positionMultiplier;
-          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
-          positions[i3 + 2] = Math.random() * 0.5;
-
-          colors[i3] = pixelData[0] / 255;
-          colors[i3 + 1] = pixelData[1] / 255;
-          colors[i3 + 2] = pixelData[2] / 255;
+          let material = new THREE.MeshBasicMaterial();
+          material.color = new THREE.Color(
+            `rgb(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`
+          );
+          material.side = THREE.DoubleSide;
+          let sphere = new THREE.Mesh(
+            new THREE.CircleGeometry(
+              (Math.random() * (0.1 - 0.04) + 0.04) *
+                this.gridOptions.sizeScaleMultiplier,
+              16
+            ),
+            material
+          );
+          sphere.position.x = posX * this.positionMultiplier;
+          sphere.position.y = (output.height - posY) * this.positionMultiplier;
+          sphere.position.z = Math.random() * 0.5;
+          scene.add(sphere);
         }
       }
-      geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(positions, 3)
-      );
-      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-      material = new THREE.PointsMaterial({
-        size: 0.1,
-        sizeAttenuation: true,
-        vertexColors: true
-      });
-
-      // Points
-      points = new THREE.Points(geometry, material);
-      scene.add(points);
-
       renderer.render(scene, camera);
     },
     cleanScene: function() {
-      console.log(scene.children.length);
-      console.log(scene.children[0]);
-      console.log(renderer.info);
-      for (const mesh in scene.children) {
-        scene.remove(mesh);
-        console.log(mesh);
-      }
-      console.log(scene.children.length);
-      console.log(renderer.info);
+      /*geometry.dispose();
+      material.dispose();
+      scene.remove(points);
+      this.gridInfo.cols = null;
+      this.gridInfo.rows = null;
+      this.gridInfo.artifactsCount = null;*/
     },
-    init: function() {
+    setGuiControls: function() {
+      this.gui = new dat.GUI();
+      this.gui
+        .add(this.gridOptions, "spacingX")
+        .name("X Space")
+        .min(5)
+        .max(50)
+        .step(5);
+        //.onFinishChange(process);
+      this.gui
+        .add(this.gridOptions, "spacingY")
+        .name("Y Space")
+        .min(5)
+        .max(50)
+        .step(5);
+        //.onFinishChange(process);
+      this.gui
+        .add(this.gridOptions, "sizeScaleMultiplier")
+        .name("Circle size")
+        .min(0.1)
+        .max(1.5)
+        .step(0.1);
+        //.onFinishChange(process);
+    },
+    initCanvas: function() {
       canvas = document.querySelector("canvas.webgl");
       scene = new THREE.Scene();
-
       camera = new THREE.PerspectiveCamera(
         70,
         canvas.clientWidth / canvas.clientHeight,
         0.01,
-        100
+        10
       );
       camera.position.z = 2;
-
       // Controls
       controls = new OrbitControls(camera, canvas);
       controls.enableDamping = true;
-
       renderer = new THREE.WebGLRenderer({ canvas });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
       let container = document.createElement("div");
       document.body.appendChild(container);
       container.appendChild(stats.dom);
-
-      gui
-        .add(this.gridOptions, "spacingX")
-        .min(5)
-        .max(100)
-        .step(1);
-        //.onFinishChange(process);
-      gui
-        .add(this.gridOptions, "spacingY")
-        .min(5)
-        .max(100)
-        .step(1);
-        //.onFinishChange(process);
-      gui
-        .add(this.gridOptions, "sizeScaleMultiplier")
-        .min(0.1)
-        .max(3)
-        .step(0.1);
-        //.onFinishChange(process);
     },
     seedRand: function(min, max, seed) {
       min = min || 0;
@@ -215,10 +189,8 @@ export default {
     },
     animate: function() {
       const elapsedTime = clock.getElapsedTime();
-      elapsedTime;
-      if (points !== null) {
-        //console.log(points.children)
-        /*for (const [id, point] of points.entries()) {
+      if (scene.children.length > 2) {
+        for (const [id, circle] of scene.children.entries()) {
           let scale = null;
           if (id % 2) {
             scale =
@@ -231,16 +203,9 @@ export default {
                 Math.cos(elapsedTime + this.seedRand(undefined, undefined, id))
               ) + 0.15;
           }
-          point.material.size = scale;
-        }*/
+          circle.scale.set(scale, scale, scale);
+        }
       }
-
-    /*   if (points !== null) {
-        console.log(points.material.size);
-
-        //geometry.attributes.position.needsUpdate = true;
-      } */
-
       stats.update();
       controls.update();
       renderer.render(scene, camera);
@@ -248,8 +213,14 @@ export default {
     }
   },
   mounted() {
-    this.init();
+    this.initCanvas();
     this.animate();
+  },
+  created() {
+    this.setGuiControls();
+  },
+  unmounted() {
+    this.gui.destroy();
   }
 };
 </script>
