@@ -193,12 +193,13 @@ export default {
             */
             vec4 modelPosition = modelMatrix * vec4(position, 1.0);
             float angle = atan(modelPosition.x, modelPosition.z);
-            float distanceToCenter = length(modelPosition.xz);
+            float distanceToCenter = length(modelPosition.xy);
             float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
             angle += angleOffset;
             modelPosition.x = cos(angle) * distanceToCenter;
+            //modelPosition.x = cos(angle);
             //modelPosition.y = sin(angle);
-            modelPosition.z = sin(angle)* distanceToCenter;
+            modelPosition.z = sin(angle) * distanceToCenter;
 
             modelPosition.xyz += aRandomness;
 
@@ -217,6 +218,7 @@ export default {
         `,
         fragmentShader: `
           varying vec3 vColor;
+          uniform float uTime;
 
           void main(){
             float strength = distance(gl_PointCoord, vec2(0.5));

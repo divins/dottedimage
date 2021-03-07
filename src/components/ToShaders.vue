@@ -20,7 +20,6 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 
-let canvas = null;
 let scene = null;
 let camera = null;
 let renderer = null;
@@ -41,7 +40,7 @@ export default {
       gridOptions: {
         spacingX: 10,
         spacingY: 10,
-        particleSize: 0.4
+        particleSize: 15
       },
       sizes: {
         width: 0,
@@ -54,13 +53,14 @@ export default {
         rows: null,
         artifactsCount: null
       },
-      animationOptions: {
-        animate: false,
-        zDisplacement: 0.2
-      },
-      gui: null,
       elements: {
-        stats: new Stats()
+        gui: null,
+        stats: new Stats(),
+        webglCanvas: null
+      },
+      animation: {
+        animate: true,
+        zDisplacement: 0.2
       }
     };
   },
@@ -72,28 +72,6 @@ export default {
         output.src = reader.result;
       };
       reader.readAsDataURL($event.target.files[0]);
-    },
-    setCanvas: function() {
-      // Update sizes
-      let output = document.getElementById("output_image");
-      this.sizes.width = output.width * this.canvasMultiplier;
-      this.sizes.height = output.height * this.canvasMultiplier;
-
-      // Update camera
-      camera.aspect = this.sizes.width / this.sizes.height;
-      camera.position.x = (output.width / 2) * this.positionMultiplier;
-      camera.position.y = (output.height / 2) * this.positionMultiplier;
-      camera.position.z = 5;
-      controls.target = new THREE.Vector3(
-        (output.width / 2) * this.positionMultiplier,
-        (output.height / 2) * this.positionMultiplier,
-        0
-      );
-      camera.updateProjectionMatrix();
-
-      // Update renderer
-      renderer.setSize(this.sizes.width, this.sizes.height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     },
     process: function() {
       this.cleanScene();
@@ -113,11 +91,11 @@ export default {
       /**
        * Geometry
        */
-      geometry = new THREE.BufferGeometry()
+      geometry = new THREE.BufferGeometry();
 
-      const positions = new Float32Array(this.gridInfo.artifactsCount * 3)
-      const colors = new Float32Array(this.gridInfo.artifactsCount * 3)
-      const scale = new Float32Array(this.gridInfo.artifactsCount * 1)
+      const positions = new Float32Array(this.gridInfo.artifactsCount * 3);
+      const colors = new Float32Array(this.gridInfo.artifactsCount * 3);
+      const scale = new Float32Array(this.gridInfo.artifactsCount * 1);
 
       for (let i = 0; i < this.gridInfo.cols; i++) {
         const posX = i * this.gridOptions.spacingX;
@@ -135,13 +113,13 @@ export default {
           positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
           positions[i3 + 2] = Math.random() * 0.5;
 
-          scale[(i * this.gridInfo.rows + z)] = Math.random() + 10;
+          scale[(i * this.gridInfo.rows + z)] = Math.random() + 1.0;
         }
       }
 
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-      geometry.setAttribute('aScale', new THREE.BufferAttribute(scale, 1))
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('aScale', new THREE.BufferAttribute(scale, 1));
 
       /**
        * Material
@@ -155,24 +133,27 @@ export default {
 
           attribute float aScale;
           uniform float uTime;
+          uniform float uZDisplacement;
 
           varying vec3 vColor;
 
           void main(){
-            /**
-            * Position
-            */
+            // Position
             vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+            modelPosition.z += sin(aScale * 10.0 - uTime) * uZDisplacement;
 
             vec4 viewPosition = viewMatrix * modelPosition;
             vec4 projectedPosition = projectionMatrix * viewPosition;
             gl_Position = projectedPosition;
 
-            /**
-            * Size
-            */
-            gl_PointSize = uSize * aScale;
-            gl_PointSize *= (1.0 / - viewPosition.z);
+            // Size
+            if(uZDisplacement == 0.0){
+              gl_PointSize = uSize * aScale * abs(sin(aScale * 10.0 - uTime));
+            } else {
+              gl_PointSize = uSize * aScale;
+            }
+            //gl_PointSize = uSize * aScale * abs(sin(aScale * 10.0 - uTime));
+            //gl_PointSize *= (1.0 / - viewPosition.z);
 
             vColor = color;
           }
@@ -183,7 +164,7 @@ export default {
           void main(){
             float strength = distance(gl_PointCoord, vec2(0.5));
             strength = 1.0 - strength;
-            strength = pow(strength, 10.0);
+            strength = pow(strength, 5.0);
 
             vec3 color = vec3(strength) * vColor;
 
@@ -191,14 +172,13 @@ export default {
           }
         `,
         uniforms: {
-          uSize: { value: 10 * renderer.getPixelRatio() },
+          uSize: { value: this.gridOptions.particleSize * renderer.getPixelRatio() },
+          uZDisplacement: { value: this.animation.zDisplacement },
           uTime: { value: 0.0 }
         }
       });
 
-      /**
-       * Points
-       */
+      // Points
       points = new THREE.Points(geometry, material);
       scene.add(points);
       renderer.render(scene, camera);
@@ -222,53 +202,66 @@ export default {
     },
     setGuiControls: function() {
       this.gui = new dat.GUI();
-      this.gui
-        .add(this.gridOptions, "spacingX")
+      this.gui.add(this.gridOptions, "spacingX")
+        .min(5).max(50).step(5)
         .name("X Space")
-        .min(5)
-        .max(50)
-        .step(5)
         .onFinishChange(this.reprocess());
       this.gui
         .add(this.gridOptions, "spacingY")
+        .min(5).max(50).step(5)
         .name("Y Space")
-        .min(5)
-        .max(50)
-        .step(5)
         .onFinishChange(this.reprocess());
       this.gui
         .add(this.gridOptions, "particleSize")
+        .min(1).max(50).step(1)
         .name("Particle size")
-        .min(0.1)
-        .max(1.5)
-        .step(0.1)
         .onFinishChange(this.reprocess());
       this.gui
-        .add(this.animationOptions, "zDisplacement")
+        .add(this.animation, "zDisplacement")
+        .min(0).max(5).step(0.1)
         .name("Z Displacement")
-        .min(0.2)
-        .max(5)
-        .step(0.2);
-      this.gui.add(this.animationOptions, "animate");
+        .onFinishChange(this.reprocess());
+      this.gui.add(this.animation, "animate");
+    },
+    setCanvas: function() {
+      // Update sizes
+      let output = document.getElementById("output_image");
+      this.sizes.width = output.width * this.canvasMultiplier;
+      this.sizes.height = output.height * this.canvasMultiplier;
+
+      // Update camera
+      camera.aspect = this.sizes.width / this.sizes.height;
+      camera.position.x = (output.width / 2) * this.positionMultiplier;
+      camera.position.y = (output.height / 2) * this.positionMultiplier;
+      camera.position.z = 5;
+      controls.target = new THREE.Vector3(
+        (output.width / 2) * this.positionMultiplier,
+        (output.height / 2) * this.positionMultiplier,
+        0
+      );
+      camera.updateProjectionMatrix();
+
+      // Update renderer
+      renderer.setSize(this.sizes.width, this.sizes.height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     },
     initCanvas: function() {
-      canvas = document.querySelector("canvas.webgl");
+      this.elements.webglCanvas = document.querySelector("canvas.webgl");
       scene = new THREE.Scene();
-      //scene.background = new THREE.Color( 0xffffff );
 
       camera = new THREE.PerspectiveCamera(
         70,
-        canvas.clientWidth / canvas.clientHeight,
+        this.elements.webglCanvas.clientWidth / this.elements.webglCanvas.clientHeight,
         0.1,
         100
       );
       camera.position.z = 2;
 
       // Controls
-      controls = new OrbitControls(camera, canvas);
+      controls = new OrbitControls(camera, this.elements.webglCanvas);
       controls.enableDamping = true;
 
-      renderer = new THREE.WebGLRenderer({ canvas });
+      renderer = new THREE.WebGLRenderer({ canvas: this.elements.webglCanvas });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       let container = document.createElement("div");
@@ -278,10 +271,9 @@ export default {
     },
     tick: function() {
       const elapsedTime = clock.getElapsedTime();
-      if (this.animationOptions.animate && geometry !== null) {
+      if (this.animation.animate && geometry !== null) {
         material.uniforms.uTime.value = elapsedTime;
       }
-
       this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
@@ -323,10 +315,14 @@ li {
 a {
   color: #42b983;
 }
-/*canvas {
+/* canvas.webgl {
+  max-width: 90%;
+} */
+canvas.webgl {
   width: 0px;
-  height: 0px;
-}*/
+  max-width: 90%;
+  height: auto;
+}
 img#output_image {
   max-width: 50%;
 }
