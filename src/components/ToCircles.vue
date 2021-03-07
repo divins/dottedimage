@@ -253,4 +253,7 @@ canvas {
   width: 0px;
   height: 0px;
 }
+img#output_image {
+  max-width: 50%;
+}
 </style>

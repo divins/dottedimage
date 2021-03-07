@@ -13,8 +13,8 @@
     {{ links.tutorial.label }}
   </a> -->
   <p class="disclaimer">
-    This demo has been created following a <a href="https://bruno-simon.com/" target="_blank">Bruno Simon</a> tutorial. 
-    Give it a <a :href="links.tutorial.href" target="_blank">try</a>!
+    This demo has been created following a <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{ links.brunos.label }}n</a> tutorial. 
+    Give it a <a :href="links.tutorial.href" :title="links.tutorial.title" target="_blank">try</a>!
   </p>
 </template>
 
@@ -64,16 +64,21 @@ export default {
   data() {
     return {
       links: {
-          repo: {
-            title: "View source code for Galaxy",
-            label: "< >",
-            href: "https://github.com/divins/dottedimage/blob/master/src/components/Galaxy.vue"
-          },
-          tutorial: {
-            title: "See followed tutorial",
-            label: "¿?",
-            href: "https://threejs-journey.xyz"
-          }
+        repo: {
+          title: "View source code for Galaxy",
+          label: "< >",
+          href: "https://github.com/divins/dottedimage/blob/master/src/components/Galaxy.vue"
+        },
+        tutorial: {
+          title: "See followed tutorial",
+          label: "¿?",
+          href: "https://threejs-journey.xyz"
+        },
+        brunos: {
+          title: "Bruno Simon website",
+          label: "Bruno Simon",
+          href: "https://bruno-simon.com/"
+        }
       },
       parameters: {
         particleCount: 200000,
@@ -183,31 +188,31 @@ export default {
           varying vec3 vColor;
 
           void main(){
-              /**
-              * Position
-              */
-              vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-              float angle = atan(modelPosition.x, modelPosition.z);
-              float distanceToCenter = length(modelPosition.xz);
-              float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
-              angle += angleOffset;
-              modelPosition.x = cos(angle) * distanceToCenter;
-              //modelPosition.y = sin(angle);
-              modelPosition.z = sin(angle)* distanceToCenter;
+            /**
+            * Position
+            */
+            vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+            float angle = atan(modelPosition.x, modelPosition.z);
+            float distanceToCenter = length(modelPosition.xz);
+            float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
+            angle += angleOffset;
+            modelPosition.x = cos(angle) * distanceToCenter;
+            //modelPosition.y = sin(angle);
+            modelPosition.z = sin(angle)* distanceToCenter;
 
-              modelPosition.xyz += aRandomness;
+            modelPosition.xyz += aRandomness;
 
-              vec4 viewPosition = viewMatrix * modelPosition;
-              vec4 projectedPosition = projectionMatrix * viewPosition;
-              gl_Position = projectedPosition;
+            vec4 viewPosition = viewMatrix * modelPosition;
+            vec4 projectedPosition = projectionMatrix * viewPosition;
+            gl_Position = projectedPosition;
 
-              /**
-              * Size
-              */
-              gl_PointSize = uSize * aScale;
-              gl_PointSize *= (1.0 / - viewPosition.z);
+            /**
+            * Size
+            */
+            gl_PointSize = uSize * aScale;
+            gl_PointSize *= (1.0 / - viewPosition.z);
 
-              vColor = color;
+            vColor = color;
           }
         `,
         fragmentShader: `

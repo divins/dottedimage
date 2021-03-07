@@ -60,7 +60,7 @@ export default {
         artifactsCount: null
       },
       animationOptions: {
-        animate: false,
+        animate: true,
         zDisplacement: 0.2
       },
       particleTexture: null,
@@ -111,12 +111,16 @@ export default {
       canvas.height = output.height;
       var ctx = canvas.getContext("2d");
       ctx.drawImage(output, 0, 0, output.width, output.height);
-      console.log("ctx set");
+
       this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
       this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
 
+      /**
+        * Geometry
+        */
       geometry = new THREE.BufferGeometry();
+
       const positions = new Float32Array(this.gridInfo.artifactsCount * 3);
       const colors = new Float32Array(this.gridInfo.artifactsCount * 3);
       const scales = new Float32Array(this.gridInfo.artifactsCount * 3);
@@ -139,9 +143,7 @@ export default {
           //positions[i3 + 2] = ((pixelData[0] + pixelData[1] + pixelData[2]) / 3) / 255 * 0.5;
 
           const scale = Math.random() + 10;
-          scales[i3] = scale;
-          scales[i3 + 1] = scale;
-          scales[i3 + 2] = scale;
+          scales[i] = scale;
         }
       }
       geometry.setAttribute(
@@ -149,7 +151,7 @@ export default {
         new THREE.BufferAttribute(positions, 3)
       );
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      geometry.setAttribute("scale", new THREE.BufferAttribute(scales, 3));
+      geometry.setAttribute("scale", new THREE.BufferAttribute(scales, 1));
 
       material = new THREE.PointsMaterial({
         size: this.gridOptions.particleSize,
@@ -164,7 +166,6 @@ export default {
       // Points
       points = new THREE.Points(geometry, material);
       scene.add(points);
-
       renderer.render(scene, camera);
     },
     cleanScene: function() {
@@ -316,5 +317,8 @@ a {
 canvas {
   width: 0px;
   height: 0px;
+}
+img#output_image {
+  max-width: 50%;
 }
 </style>

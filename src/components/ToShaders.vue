@@ -31,12 +31,6 @@ let geometry = null;
 let material = null;
 let points = null;
 
-/**
- * Textures
- */
-//const textureLoader = new THREE.TextureLoader();
-//const particleCustomTexture = textureLoader.load(require("@/assets/1.png"));
-
 export default {
   name: "ToShaders",
   props: {
@@ -64,7 +58,6 @@ export default {
         animate: false,
         zDisplacement: 0.2
       },
-      particleTexture: null,
       gui: null,
       elements: {
         stats: new Stats()
@@ -77,163 +70,9 @@ export default {
       reader.onload = () => {
         let output = document.getElementById("output_image");
         output.src = reader.result;
-        //this.setCanvas();
       };
       reader.readAsDataURL($event.target.files[0]);
     },
-    process: function() {
-    if(points !== null)
-    {
-        geometry.dispose()
-        material.dispose()
-        scene.remove(points)
-    }
-
-    var output = document.getElementById("output_image");
-    var canvas = document.createElement("canvas");
-    var ctx = canvas.getContext("2d");
-    ctx.drawImage(output, 0, 0, output.width, output.height);
-
-    this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
-    this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
-    this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
-
-
-    /**
-     * Geometry
-     */
-    geometry = new THREE.BufferGeometry()
-
-    const positions = new Float32Array(this.gridInfo.artifactsCount * 3)
-    const colors = new Float32Array(this.gridInfo.artifactsCount * 3)
-    const scale = new Float32Array(this.gridInfo.artifactsCount * 1)
-    const randomness = new Float32Array(this.gridInfo.artifactsCount * 3)
-
-    /* const insideColor = new THREE.Color(parameters.insideColor)
-    const outsideColor = new THREE.Color(parameters.outsideColor) */
-
-    for (let i = 0; i < this.gridInfo.cols; i++) {
-        const posX = i * this.gridOptions.spacingX;
-        for (let z = 0; z < this.gridInfo.rows; z++) {
-          const i3 = (i * this.gridInfo.rows + z) * 3;
-
-          const posY = z * this.gridOptions.spacingY;
-          var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
-
-
-          positions[i3] = posX * this.positionMultiplier;
-          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
-          positions[i3 + 2] = Math.random() * 0.5;
-          //positions[i3 + 2] = ((pixelData[0] + pixelData[1] + pixelData[2]) / 3) / 255 * 0.5;
-
-          
-          colors[i3] = pixelData[0] / 255;
-          colors[i3 + 1] = pixelData[1] / 255;
-          colors[i3 + 2] = pixelData[2] / 255;
-
-           colors[i3] = pixelData[0] / 255;
-          colors[i3 + 1] = pixelData[1] / 255;
-          colors[i3 + 2] = pixelData[2] / 255;
-
-          scale[i] = Math.random() + 10;
-        }
-      }
-
-    /*for(let i = 0; i < parameters.count; i++)
-    {
-        const i3 = i * 3
-
-        // Position
-        const radius = Math.random() * parameters.radius
-
-        const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
-
-        // Randomness
-        const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-        const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-        const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
-        randomness[i3    ] = randomX
-        randomness[i3 + 1] = randomY
-        randomness[i3 + 2] = randomZ
-
-        // Original position with randomness
-        positions[i3    ] = Math.cos(branchAngle) * radius
-        positions[i3 + 1] = 0
-        positions[i3 + 2] = Math.sin(branchAngle) * radius
-
-        // Color
-        const mixedColor = insideColor.clone()
-        mixedColor.lerp(outsideColor, radius / parameters.radius)
-
-        colors[i3    ] = mixedColor.r
-        colors[i3 + 1] = mixedColor.g
-        colors[i3 + 2] = mixedColor.b
-
-        // Scale
-        scale[i] = Math.random() + 0.3
-    }*/
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-    geometry.setAttribute('aScale', new THREE.BufferAttribute(scale, 1))
-    geometry.setAttribute('aRandomness', new THREE.BufferAttribute(randomness, 3))
-
-    /**
-     * Material
-     */
-    material = new THREE.ShaderMaterial({
-        /*depthWrite: false,
-        blending: THREE.AdditiveBlending,*/
-        vertexColors: true,
-        vertexShader: `
-        uniform float uSize;
-
-attribute float aScale;
-uniform float uTime;
-attribute vec3 aRandomness;
-
-varying vec3 vColor;
-
-void main(){
-    /**
-    * Position
-    */
-    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-
-    vec4 viewPosition = viewMatrix * modelPosition;
-    vec4 projectedPosition = projectionMatrix * viewPosition;
-    gl_Position = projectedPosition;
-
-    /**
-    * Size
-    */
-    //gl_PointSize *= ( scale / - mvPosition.z );
-    gl_PointSize = uSize; // * aScale;
-    //gl_PointSize *= (1.0 / - viewPosition.z);
-
-    vColor = color;
-}
-        `,
-        fragmentShader: `
-        varying vec3 vColor;
-
-void main(){
-    gl_FragColor = vec4(vColor, 1.0);
-}
-        `,
-        uniforms: {
-            uSize: { value: 1 * renderer.getPixelRatio() },
-            uTime: { value: 0.0 }
-        }
-    })
-
-    /**
-     * Points
-     */
-    points = new THREE.Points(geometry, material)
-    scene.add(points)
-}
-    ,
     setCanvas: function() {
       // Update sizes
       let output = document.getElementById("output_image");
@@ -255,6 +94,114 @@ void main(){
       // Update renderer
       renderer.setSize(this.sizes.width, this.sizes.height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    },
+    process: function() {
+      this.cleanScene();
+      this.setCanvas();
+
+      var output = document.getElementById("output_image");
+      var canvas = document.createElement("canvas");
+      var ctx = canvas.getContext("2d");
+      canvas.width = output.width;
+      canvas.height = output.height;
+      ctx.drawImage(output, 0, 0, output.width, output.height);
+
+      this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
+      this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
+      this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
+
+      /**
+       * Geometry
+       */
+      geometry = new THREE.BufferGeometry()
+
+      const positions = new Float32Array(this.gridInfo.artifactsCount * 3)
+      const colors = new Float32Array(this.gridInfo.artifactsCount * 3)
+      const scale = new Float32Array(this.gridInfo.artifactsCount * 1)
+
+      for (let i = 0; i < this.gridInfo.cols; i++) {
+        const posX = i * this.gridOptions.spacingX;
+        for (let z = 0; z < this.gridInfo.rows; z++) {
+          const i3 = (i * this.gridInfo.rows + z) * 3;
+
+          const posY = z * this.gridOptions.spacingY;
+          var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
+
+          colors[i3] = pixelData[0] / 255;
+          colors[i3 + 1] = pixelData[1] / 255;
+          colors[i3 + 2] = pixelData[2] / 255;
+
+          positions[i3] = posX * this.positionMultiplier;
+          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
+          positions[i3 + 2] = Math.random() * 0.5;
+
+          scale[(i * this.gridInfo.rows + z)] = Math.random() + 10;
+        }
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+      geometry.setAttribute('aScale', new THREE.BufferAttribute(scale, 1))
+
+      /**
+       * Material
+       */
+      material = new THREE.ShaderMaterial({
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+        vertexShader: `
+          uniform float uSize;
+
+          attribute float aScale;
+          uniform float uTime;
+
+          varying vec3 vColor;
+
+          void main(){
+            /**
+            * Position
+            */
+            vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+
+            vec4 viewPosition = viewMatrix * modelPosition;
+            vec4 projectedPosition = projectionMatrix * viewPosition;
+            gl_Position = projectedPosition;
+
+            /**
+            * Size
+            */
+            gl_PointSize = uSize * aScale;
+            gl_PointSize *= (1.0 / - viewPosition.z);
+
+            vColor = color;
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vColor;
+
+          void main(){
+            float strength = distance(gl_PointCoord, vec2(0.5));
+            strength = 1.0 - strength;
+            strength = pow(strength, 10.0);
+
+            vec3 color = vec3(strength) * vColor;
+
+            gl_FragColor = vec4(color, 1.0);
+          }
+        `,
+        uniforms: {
+          uSize: { value: 10 * renderer.getPixelRatio() },
+          uTime: { value: 0.0 }
+        }
+      });
+
+      /**
+       * Points
+       */
+      points = new THREE.Points(geometry, material);
+      scene.add(points);
+      renderer.render(scene, camera);
     },
     cleanScene: function() {
       if (points !== null) {
@@ -307,12 +254,12 @@ void main(){
     initCanvas: function() {
       canvas = document.querySelector("canvas.webgl");
       scene = new THREE.Scene();
-      scene.background = new THREE.Color( 0xffffff );
+      //scene.background = new THREE.Color( 0xffffff );
 
       camera = new THREE.PerspectiveCamera(
         70,
         canvas.clientWidth / canvas.clientHeight,
-        0.01,
+        0.1,
         100
       );
       camera.position.z = 2;
@@ -329,31 +276,16 @@ void main(){
       document.body.appendChild(container);
       container.appendChild(this.elements.stats.dom);
     },
-    seedRand: function(min, max, seed) {
-      min = min || 0;
-      max = max || 1;
-      var rand;
-      if (typeof seed === "number") {
-        seed = (seed * 9301 + 49297) % 233280;
-        var rnd = seed / 233280;
-        var disp = Math.abs(Math.sin(seed));
-        rnd = rnd + disp - Math.floor(rnd + disp);
-        rand = min + rnd * (max - min + 1);
-      } else {
-        rand = Math.random() * (max - min + 1) + min;
-      }
-      return rand;
-    },
-    animate: function() {
+    tick: function() {
       const elapsedTime = clock.getElapsedTime();
-      if (this.animationOptions.animate && geometry !== null){
+      if (this.animationOptions.animate && geometry !== null) {
         material.uniforms.uTime.value = elapsedTime;
       }
 
       this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
-      requestAnimationFrame(this.animate);
+      requestAnimationFrame(this.tick);
     },
     cleanAll: function() {
       this.cleanScene();
@@ -364,7 +296,7 @@ void main(){
   },
   mounted() {
     this.initCanvas();
-    this.animate();
+    this.tick();
   },
   created() {
     this.setGuiControls();
@@ -391,8 +323,11 @@ li {
 a {
   color: #42b983;
 }
-canvas {
-  width: 800px;
-  height: 500px;
+/*canvas {
+  width: 0px;
+  height: 0px;
+}*/
+img#output_image {
+  max-width: 50%;
 }
 </style>
