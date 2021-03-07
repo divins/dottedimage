@@ -71,9 +71,15 @@ p.disclaimer {
   right: 0px;
   height: 25px;
   z-index: 100;
+  color: #222;
 }
 p.disclaimer a {
   color: #42b983;
   text-decoration: none;
+}
+#stats div {
+  bottom: 20px;
+  top: unset !important;
+  left: 20px !important;
 }
 </style>

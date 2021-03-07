@@ -7,10 +7,8 @@
         <li>Artifacts: {{ gridInfo.artifactsCount }}</li>
       </ul>
       <input type="file" accept="image/*" @input="upload" />
-      <button @click="process">Process</button>
-      <!--<button @click="cleanScene">Clean</button>-->
     </div>
-    <img id="output_image" />
+    <img id="output_image" @load="process" />
     <canvas class="webgl"></canvas>
   </div>
 </template>

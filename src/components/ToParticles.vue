@@ -7,10 +7,8 @@
         <li>Artifacts: {{ gridInfo.artifactsCount }}</li>
       </ul>
       <input type="file" accept="image/*" @input="upload" />
-      <button @click="process">Process</button>
-      <button @click="cleanScene">Clean</button>
     </div>
-    <img id="output_image" />
+    <img id="output_image" @load="process" />
     <canvas class="webgl"></canvas>
   </div>
 </template>
@@ -78,7 +76,6 @@ export default {
       reader.onload = () => {
         let output = document.getElementById("output_image");
         output.src = reader.result;
-        //this.setCanvas();
       };
       reader.readAsDataURL($event.target.files[0]);
     },
@@ -114,7 +111,7 @@ export default {
       canvas.height = output.height;
       var ctx = canvas.getContext("2d");
       ctx.drawImage(output, 0, 0, output.width, output.height);
-
+      console.log("ctx set");
       this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
       this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;

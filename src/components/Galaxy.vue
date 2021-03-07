@@ -80,7 +80,7 @@ export default {
         particleSize: 15,
         radius: 5,
         branches: 3,
-        spin: 1,
+        spinVelocity: 0.2,
         randomness: 0.5,
         randomnessPower: 3,
         insideColor: 0xff6030,
@@ -178,6 +178,7 @@ export default {
           attribute float aScale;
           uniform float uTime;
           attribute vec3 aRandomness;
+          uniform float uSpinVelocity;
 
           varying vec3 vColor;
 
@@ -188,7 +189,7 @@ export default {
               vec4 modelPosition = modelMatrix * vec4(position, 1.0);
               float angle = atan(modelPosition.x, modelPosition.z);
               float distanceToCenter = length(modelPosition.xz);
-              float angleOffset = (1.0 / distanceToCenter) * uTime * 0.2;
+              float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
               angle += angleOffset;
               modelPosition.x = cos(angle) * distanceToCenter;
               //modelPosition.y = sin(angle);
@@ -203,7 +204,7 @@ export default {
               /**
               * Size
               */
-              gl_PointSize = uSize;// * aScale;
+              gl_PointSize = uSize * aScale;
               gl_PointSize *= (1.0 / - viewPosition.z);
 
               vColor = color;
@@ -224,7 +225,8 @@ export default {
         `,
         uniforms: {
           uSize: { value: this.parameters.particleSize * renderer.getPixelRatio() },
-          uTime: { value: 0.0 }
+          uTime: { value: 0.0 },
+          uSpinVelocity: { value: this.parameters.spinVelocity }
         }
       });
 
@@ -237,6 +239,7 @@ export default {
     },
     setGuiControls: function() {
       this.elements.gui = new dat.GUI();
+      // Particles params
       const particlesFolder = this.elements.gui.addFolder("Particles");
       particlesFolder.add(this.parameters, "particleCount")
         .min(100).max(1000000).step(100)
@@ -244,7 +247,11 @@ export default {
       particlesFolder.add(this.parameters, "particleSize")
         .min(1).max(50).step(1)
         .onFinishChange(this.generateGalaxy);
+      // Galaxy params
       const galaxyFolder = this.elements.gui.addFolder("Galaxy");
+      galaxyFolder.add(this.parameters, "spinVelocity")
+        .min(0.01).max(1).step(0.01)
+        .onFinishChange(this.generateGalaxy);
       galaxyFolder.add(this.parameters, "radius")
         .min(0.01).max(20).step(0.01)
         .onFinishChange(this.generateGalaxy);
@@ -261,6 +268,7 @@ export default {
         .onFinishChange(this.generateGalaxy);
       galaxyFolder.addColor(this.parameters, "outsideColor")
         .onFinishChange(this.generateGalaxy);
+      // Actions
       this.elements.pauseButton = this.elements.gui.add(this, "pause").name("Pause");
       this.elements.gui.add(this, "reset").name("Reset animation");
     },
