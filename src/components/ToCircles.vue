@@ -29,7 +29,7 @@ const clock = new THREE.Clock();
 let stats = new Stats();
 
 export default {
-  name: "HelloWorld",
+  name: "ToCircles",
   props: {
     msg: String
   },

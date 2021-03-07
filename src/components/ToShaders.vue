@@ -7,7 +7,7 @@
         <li>Artifacts: {{ gridInfo.artifactsCount }}</li>
       </ul>
       <input type="file" accept="image/*" @input="upload" />
-      <button @click="process">Process</button>
+      <button @click="paint">Process</button>
       <button @click="cleanScene">Clean</button>
     </div>
     <img id="output_image" />
@@ -35,13 +35,27 @@ let points = null;
 let stats = new Stats();
 
 /**
+ * Galaxy
+ */
+const parameters = {}
+parameters.count = 200000
+parameters.size = 0.005
+parameters.radius = 5
+parameters.branches = 3
+parameters.spin = 1
+parameters.randomness = 0.5
+parameters.randomnessPower = 3
+parameters.insideColor = '#ff6030'
+parameters.outsideColor = '#1b3984'
+
+/**
  * Textures
  */
-const textureLoader = new THREE.TextureLoader();
-const particleCustomTexture = textureLoader.load(require("@/assets/1.png"));
+//const textureLoader = new THREE.TextureLoader();
+//const particleCustomTexture = textureLoader.load(require("@/assets/1.png"));
 
 export default {
-  name: "ToParticles",
+  name: "ToShaders",
   props: {
     msg: String
   },
@@ -81,6 +95,159 @@ export default {
       };
       reader.readAsDataURL($event.target.files[0]);
     },
+    paint: function() {
+    if(points !== null)
+    {
+        geometry.dispose()
+        material.dispose()
+        scene.remove(points)
+    }
+
+    var output = document.getElementById("output_image");
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(output, 0, 0, output.width, output.height);
+
+    this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
+    this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
+    this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
+
+
+    /**
+     * Geometry
+     */
+    geometry = new THREE.BufferGeometry()
+
+    const positions = new Float32Array(this.gridInfo.artifactsCount * 3)
+    const colors = new Float32Array(this.gridInfo.artifactsCount * 3)
+    const scale = new Float32Array(this.gridInfo.artifactsCount * 1)
+    const randomness = new Float32Array(this.gridInfo.artifactsCount * 3)
+
+    /* const insideColor = new THREE.Color(parameters.insideColor)
+    const outsideColor = new THREE.Color(parameters.outsideColor) */
+
+    for (let i = 0; i < this.gridInfo.cols; i++) {
+        const posX = i * this.gridOptions.spacingX;
+        for (let z = 0; z < this.gridInfo.rows; z++) {
+          const i3 = (i * this.gridInfo.rows + z) * 3;
+
+          const posY = z * this.gridOptions.spacingY;
+          var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
+
+
+          positions[i3] = posX * this.positionMultiplier;
+          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
+          positions[i3 + 2] = Math.random() * 0.5;
+          //positions[i3 + 2] = ((pixelData[0] + pixelData[1] + pixelData[2]) / 3) / 255 * 0.5;
+
+          
+          colors[i3] = pixelData[0] / 255;
+          colors[i3 + 1] = pixelData[1] / 255;
+          colors[i3 + 2] = pixelData[2] / 255;
+
+           colors[i3] = pixelData[0] / 255;
+          colors[i3 + 1] = pixelData[1] / 255;
+          colors[i3 + 2] = pixelData[2] / 255;
+
+          scale[i] = Math.random() + 10;
+        }
+      }
+
+    /*for(let i = 0; i < parameters.count; i++)
+    {
+        const i3 = i * 3
+
+        // Position
+        const radius = Math.random() * parameters.radius
+
+        const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
+
+        // Randomness
+        const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+        const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+        const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+        randomness[i3    ] = randomX
+        randomness[i3 + 1] = randomY
+        randomness[i3 + 2] = randomZ
+
+        // Original position with randomness
+        positions[i3    ] = Math.cos(branchAngle) * radius
+        positions[i3 + 1] = 0
+        positions[i3 + 2] = Math.sin(branchAngle) * radius
+
+        // Color
+        const mixedColor = insideColor.clone()
+        mixedColor.lerp(outsideColor, radius / parameters.radius)
+
+        colors[i3    ] = mixedColor.r
+        colors[i3 + 1] = mixedColor.g
+        colors[i3 + 2] = mixedColor.b
+
+        // Scale
+        scale[i] = Math.random() + 0.3
+    }*/
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    geometry.setAttribute('aScale', new THREE.BufferAttribute(scale, 1))
+    geometry.setAttribute('aRandomness', new THREE.BufferAttribute(randomness, 3))
+
+    /**
+     * Material
+     */
+    material = new THREE.ShaderMaterial({
+        /*depthWrite: false,
+        blending: THREE.AdditiveBlending,*/
+        vertexColors: true,
+        vertexShader: `
+        uniform float uSize;
+
+attribute float aScale;
+uniform float uTime;
+attribute vec3 aRandomness;
+
+varying vec3 vColor;
+
+void main(){
+    /**
+    * Position
+    */
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+
+    vec4 viewPosition = viewMatrix * modelPosition;
+    vec4 projectedPosition = projectionMatrix * viewPosition;
+    gl_Position = projectedPosition;
+
+    /**
+    * Size
+    */
+    //gl_PointSize *= ( scale / - mvPosition.z );
+    gl_PointSize = uSize; // * aScale;
+    //gl_PointSize *= (1.0 / - viewPosition.z);
+
+    vColor = color;
+}
+        `,
+        fragmentShader: `
+        varying vec3 vColor;
+
+void main(){
+    gl_FragColor = vec4(vColor, 1.0);
+}
+        `,
+        uniforms: {
+            uSize: { value: 1 * renderer.getPixelRatio() },
+            uTime: { value: 0.0 }
+        }
+    })
+
+    /**
+     * Points
+     */
+    points = new THREE.Points(geometry, material)
+    scene.add(points)
+}
+    ,
     setCanvas: function() {
       // Update sizes
       let output = document.getElementById("output_image");
@@ -102,72 +269,6 @@ export default {
       // Update renderer
       renderer.setSize(this.sizes.width, this.sizes.height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    },
-    process() {
-      this.cleanScene();
-      this.setCanvas();
-
-      var output = document.getElementById("output_image");
-      var canvas = document.createElement("canvas");
-      canvas.width = output.width;
-      canvas.height = output.height;
-      var ctx = canvas.getContext("2d");
-      ctx.drawImage(output, 0, 0, output.width, output.height);
-
-      this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
-      this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
-      this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
-
-      geometry = new THREE.BufferGeometry();
-      const positions = new Float32Array(this.gridInfo.artifactsCount * 3);
-      const colors = new Float32Array(this.gridInfo.artifactsCount * 3);
-      const scales = new Float32Array(this.gridInfo.artifactsCount * 3);
-
-      for (let i = 0; i < this.gridInfo.cols; i++) {
-        const posX = i * this.gridOptions.spacingX;
-        for (let z = 0; z < this.gridInfo.rows; z++) {
-          const i3 = (i * this.gridInfo.rows + z) * 3;
-
-          const posY = z * this.gridOptions.spacingY;
-          var pixelData = ctx.getImageData(posX, posY, 1, 1).data;
-
-          colors[i3] = pixelData[0] / 255;
-          colors[i3 + 1] = pixelData[1] / 255;
-          colors[i3 + 2] = pixelData[2] / 255;
-
-          positions[i3] = posX * this.positionMultiplier;
-          positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
-          positions[i3 + 2] = Math.random() * 0.5;
-          //positions[i3 + 2] = ((pixelData[0] + pixelData[1] + pixelData[2]) / 3) / 255 * 0.5;
-
-          const scale = Math.random() + 10;
-          scales[i3] = scale;
-          scales[i3 + 1] = scale;
-          scales[i3 + 2] = scale;
-        }
-      }
-      geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(positions, 3)
-      );
-      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      geometry.setAttribute("scale", new THREE.BufferAttribute(scales, 3));
-
-      material = new THREE.PointsMaterial({
-        size: this.gridOptions.particleSize,
-        sizeAttenuation: true,
-        vertexColors: true,
-        alphaMap: particleCustomTexture,
-        depthWrite: false,
-        transparent: true,
-        //blending: THREE.AdditiveBlending
-      });
-
-      // Points
-      points = new THREE.Points(geometry, material);
-      scene.add(points);
-
-      renderer.render(scene, camera);
     },
     cleanScene: function() {
       if (points !== null) {
@@ -220,6 +321,7 @@ export default {
     initCanvas: function() {
       canvas = document.querySelector("canvas.webgl");
       scene = new THREE.Scene();
+      scene.background = new THREE.Color( 0xffffff );
 
       camera = new THREE.PerspectiveCamera(
         70,
@@ -257,20 +359,8 @@ export default {
     },
     animate: function() {
       const elapsedTime = clock.getElapsedTime();
-
-      if (this.animationOptions.animate && geometry !== null) {
-        for (let i = 0; i < this.gridInfo.artifactsCount; i++) {
-          const i3 = i * 3; // it gets the index of the position vector for each particle
-          const z = geometry.attributes.position.array[i3 + 2];
-          z;
-
-          if (i3 % 2) {
-            geometry.attributes.position.array[i3 + 2] = Math.sin(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * this.animationOptions.zDisplacement;
-          } else {
-            geometry.attributes.position.array[i3 + 2] = Math.cos(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * this.animationOptions.zDisplacement;
-          }
-        }
-        geometry.attributes.position.needsUpdate = true;
+      if (this.animationOptions.animate && geometry !== null){
+        material.uniforms.uTime.value = elapsedTime;
       }
 
       stats.update();
@@ -310,7 +400,7 @@ a {
   color: #42b983;
 }
 canvas {
-  width: 0px;
-  height: 0px;
+  width: 800px;
+  height: 500px;
 }
 </style>
