@@ -32,22 +32,6 @@ let geometry = null;
 let material = null;
 let points = null;
 
-let stats = new Stats();
-
-/**
- * Galaxy
- */
-const parameters = {}
-parameters.count = 200000
-parameters.size = 0.005
-parameters.radius = 5
-parameters.branches = 3
-parameters.spin = 1
-parameters.randomness = 0.5
-parameters.randomnessPower = 3
-parameters.insideColor = '#ff6030'
-parameters.outsideColor = '#1b3984'
-
 /**
  * Textures
  */
@@ -82,7 +66,10 @@ export default {
         zDisplacement: 0.2
       },
       particleTexture: null,
-      gui: null
+      gui: null,
+      elements: {
+        stats: new Stats()
+      }
     };
   },
   methods: {
@@ -339,8 +326,9 @@ void main(){
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       let container = document.createElement("div");
+      container.setAttribute("id", "stats");
       document.body.appendChild(container);
-      container.appendChild(stats.dom);
+      container.appendChild(this.elements.stats.dom);
     },
     seedRand: function(min, max, seed) {
       min = min || 0;
@@ -363,10 +351,16 @@ void main(){
         material.uniforms.uTime.value = elapsedTime;
       }
 
-      stats.update();
+      this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
       requestAnimationFrame(this.animate);
+    },
+    cleanAll: function() {
+      this.cleanScene();
+      this.gui.destroy();
+      var statsElement = document.getElementById("stats");
+      statsElement.parentNode.removeChild(statsElement);
     }
   },
   mounted() {
@@ -377,8 +371,7 @@ void main(){
     this.setGuiControls();
   },
   beforeUnmount() {
-    this.cleanScene();
-    this.gui.destroy();
+    this.cleanAll();
   }
 };
 </script>

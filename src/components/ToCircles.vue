@@ -20,13 +20,13 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
+
 let canvas = null;
 let scene = null;
 let camera = null;
 let renderer = null;
 let controls = null;
 const clock = new THREE.Clock();
-let stats = new Stats();
 
 export default {
   name: "ToCircles",
@@ -51,7 +51,10 @@ export default {
         rows: null,
         artifactsCount: null
       },
-      gui: null
+      gui: null,
+      elements: {
+        stats: new Stats()
+      }
     };
   },
   methods: {
@@ -168,9 +171,11 @@ export default {
       controls.enableDamping = true;
       renderer = new THREE.WebGLRenderer({ canvas });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      
       let container = document.createElement("div");
+      container.setAttribute("id", "stats");
       document.body.appendChild(container);
-      container.appendChild(stats.dom);
+      container.appendChild(this.elements.stats.dom);
     },
     seedRand: function(min, max, seed) {
       min = min || 0;
@@ -206,10 +211,15 @@ export default {
           circle.scale.set(scale, scale, scale);
         }
       }
-      stats.update();
+      this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
       requestAnimationFrame(this.animate);
+    },
+    cleanAll: function() {
+      this.gui.destroy();
+      var statsElement = document.getElementById("stats");
+      statsElement.parentNode.removeChild(statsElement);
     }
   },
   mounted() {
@@ -220,7 +230,7 @@ export default {
     this.setGuiControls();
   },
   unmounted() {
-    this.gui.destroy();
+    this.cleanAll();
   }
 };
 </script>

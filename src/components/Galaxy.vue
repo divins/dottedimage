@@ -6,12 +6,16 @@
     target="_blank">
     {{ links.repo.label }}
   </a>
-  <a class="demo tutorial"
+  <!-- <a class="demo tutorial"
     :title="links.tutorial.title"
     :href="links.tutorial.href"
     target="_blank">
     {{ links.tutorial.label }}
-  </a>
+  </a> -->
+  <p class="disclaimer">
+    This demo has been created following a <a href="https://bruno-simon.com/" target="_blank">Bruno Simon</a> tutorial. 
+    Give it a <a :href="links.tutorial.href" target="_blank">try</a>!
+  </p>
 </template>
 
 <script>
@@ -306,6 +310,7 @@ export default {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       let container = document.createElement("div");
+      container.setAttribute("id", "stats");
       document.body.appendChild(container);
       container.appendChild(this.elements.stats.dom);
     },
@@ -331,6 +336,8 @@ export default {
       }
 
       this.elements.gui.destroy();
+      var statsElement = document.getElementById("stats");
+      statsElement.parentNode.removeChild(statsElement);
     }
   },
   created() {
@@ -351,12 +358,14 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .webgl {
   position: fixed;
   top: 0;
   left: 0;
   outline: none;
 }
-
+p.disclaimer {
+  color: #eee;
+}
 </style>

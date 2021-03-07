@@ -32,8 +32,6 @@ let geometry = null;
 let material = null;
 let points = null;
 
-let stats = new Stats();
-
 /**
  * Textures
  */
@@ -68,7 +66,10 @@ export default {
         zDisplacement: 0.2
       },
       particleTexture: null,
-      gui: null
+      gui: null,
+      elements: {
+        stats: new Stats()
+      }
     };
   },
   methods: {
@@ -237,8 +238,9 @@ export default {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       let container = document.createElement("div");
+      container.setAttribute("id", "stats");
       document.body.appendChild(container);
-      container.appendChild(stats.dom);
+      container.appendChild(this.elements.stats.dom);
     },
     seedRand: function(min, max, seed) {
       min = min || 0;
@@ -273,10 +275,16 @@ export default {
         geometry.attributes.position.needsUpdate = true;
       }
 
-      stats.update();
+      this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
       requestAnimationFrame(this.animate);
+    },
+    cleanAll: function() {
+      this.cleanScene();
+      this.gui.destroy();
+      var statsElement = document.getElementById("stats");
+      statsElement.parentNode.removeChild(statsElement);
     }
   },
   mounted() {
@@ -287,8 +295,7 @@ export default {
     this.setGuiControls();
   },
   beforeUnmount() {
-    this.cleanScene();
-    this.gui.destroy();
+    this.cleanAll();
   }
 };
 </script>

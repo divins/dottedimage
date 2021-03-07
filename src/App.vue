@@ -53,15 +53,27 @@ a.demo {
   text-decoration: none;
   font-size: 0.9em;
 }
-a.repo {
+a.demo:hover {
+  opacity: 0.8;
+}
+a.demo.repo {
   right: 25px;
   bottom: 25px;
 }
-a.tutorial {
+a.demo.tutorial {
   right: 100px;
   bottom: 25px;
 }
-a.demo:hover {
-  opacity: 0.8;
+p.disclaimer {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  height: 25px;
+  z-index: 100;
+}
+p.disclaimer a {
+  color: #42b983;
+  text-decoration: none;
 }
 </style>
