@@ -43,6 +43,8 @@ let geometry = null;
 let material = null;
 let points = null;
 
+let requestAnimationFrameId = null;
+
 export default {
   name: "ToShaders",
   props: {
@@ -109,9 +111,8 @@ export default {
       this.gridInfo.rows = Math.round(this.imageSize.height / this.gridOptions.spacingY);
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
 
-      console.log(this.elements.webglCanvas);
       this.setCanvas();
-      console.log(this.elements.webglCanvas);
+
       /**
        * Geometry
        */
@@ -121,7 +122,6 @@ export default {
       const colors = new Float32Array(this.gridInfo.artifactsCount * 3);
       const scale = new Float32Array(this.gridInfo.artifactsCount * 1);
 
-      console.log(this.gridInfo);
       for (let i = 0; i < this.gridInfo.cols; i++) {
         const posX = i * this.gridOptions.spacingX;
         for (let z = 0; z < this.gridInfo.rows; z++) {
@@ -301,13 +301,14 @@ export default {
       this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
-      requestAnimationFrame(this.tick);
+      requestAnimationFrameId = requestAnimationFrame(this.tick);
     },
     cleanAll: function() {
       this.cleanScene();
       this.gui.destroy();
       var statsElement = document.getElementById("stats");
       statsElement.parentNode.removeChild(statsElement);
+      cancelAnimationFrame(requestAnimationFrameId);
     }
   },
   mounted() {

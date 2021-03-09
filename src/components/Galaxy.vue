@@ -17,6 +17,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
+import galaxyShaderVertex from '../shaders/galaxy/vertex.glsl';
+import galaxyShaderFragment from '../shaders/galaxy/fragment.glsl';
 
 let scene = null;
 let camera = null;
@@ -27,6 +29,8 @@ const clock = new THREE.Clock();
 let geometry = null;
 let material = null;
 let points = null;
+
+let requestAnimationFrameId = null;
 
 /**
  * Sizes
@@ -112,7 +116,6 @@ export default {
         material.dispose();
         scene.remove(points);
       }
-
       /**
        * Geometry
        */
@@ -171,59 +174,8 @@ export default {
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         vertexColors: true,
-        vertexShader: `
-          uniform float uSize;
-
-          attribute float aScale;
-          uniform float uTime;
-          attribute vec3 aRandomness;
-          uniform float uSpinVelocity;
-
-          varying vec3 vColor;
-
-          void main(){
-            /**
-            * Position
-            */
-            vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-            float angle = atan(modelPosition.x, modelPosition.z);
-            float distanceToCenter = length(modelPosition.xy);
-            float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
-            angle += angleOffset;
-            modelPosition.x = cos(angle) * distanceToCenter;
-            //modelPosition.x = cos(angle);
-            //modelPosition.y = sin(angle);
-            modelPosition.z = sin(angle) * distanceToCenter;
-
-            modelPosition.xyz += aRandomness;
-
-            vec4 viewPosition = viewMatrix * modelPosition;
-            vec4 projectedPosition = projectionMatrix * viewPosition;
-            gl_Position = projectedPosition;
-
-            /**
-            * Size
-            */
-            gl_PointSize = uSize * aScale;
-            gl_PointSize *= (1.0 / - viewPosition.z);
-
-            vColor = color;
-          }
-        `,
-        fragmentShader: `
-          varying vec3 vColor;
-          uniform float uTime;
-
-          void main(){
-            float strength = distance(gl_PointCoord, vec2(0.5));
-            strength = 1.0 - strength;
-            strength = pow(strength, 10.0);
-
-            vec3 color = mix(vec3(0.0), vColor, strength);
-
-            gl_FragColor = vec4(color, 1.0);
-          }
-        `,
+        vertexShader: galaxyShaderVertex,
+        fragmentShader: galaxyShaderFragment,
         uniforms: {
           uSize: { value: this.parameters.particleSize * renderer.getPixelRatio() },
           uTime: { value: 0.0 },
@@ -335,7 +287,7 @@ export default {
       this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
-      requestAnimationFrame(this.tick);
+      requestAnimationFrameId = requestAnimationFrame(this.tick);
     },
     cleanAll: function() {
       if (points !== null) {
@@ -347,6 +299,7 @@ export default {
       this.elements.gui.destroy();
       var statsElement = document.getElementById("stats");
       statsElement.parentNode.removeChild(statsElement);
+      cancelAnimationFrame(requestAnimationFrameId);
     }
   },
   created() {

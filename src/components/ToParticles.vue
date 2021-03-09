@@ -46,6 +46,8 @@ let geometry = null;
 let material = null;
 let points = null;
 
+let requestAnimationFrameId = null;
+
 /**
  * Textures
  */
@@ -299,13 +301,14 @@ export default {
       this.elements.stats.update();
       controls.update();
       renderer.render(scene, camera);
-      requestAnimationFrame(this.animate);
+      requestAnimationFrameId = requestAnimationFrame(this.animate);
     },
     cleanAll: function() {
       this.cleanScene();
       this.gui.destroy();
       var statsElement = document.getElementById("stats");
       statsElement.parentNode.removeChild(statsElement);
+      cancelAnimationFrame(requestAnimationFrameId);
     }
   },
   mounted() {
