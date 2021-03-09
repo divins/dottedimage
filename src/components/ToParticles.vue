@@ -20,6 +20,12 @@
       <img id="output_image" @load="process" />
       <canvas class="webgl"></canvas>
     </div>
+    <a class="demo repo"
+      :title="links.repo.title"
+      :href="links.repo.href"
+      target="_blank">
+      {{ links.repo.label }}
+    </a>
   </div>
 </template>
 
@@ -53,6 +59,13 @@ export default {
   },
   data() {
     return {
+      links: {
+        repo: {
+          title: "View source code for particles",
+          label: "< >",
+          href: "https://github.com/divins/dottedimage/blob/master/src/components/ToParticles.vue"
+        }
+      },
       gridOptions: {
         spacingX: 10,
         spacingY: 10,
@@ -352,5 +365,9 @@ canvas {
 }
 img#output_image {
   max-width: 50%;
+}
+a.demo {
+  background: #333;
+  color: #ddd;
 }
 </style>

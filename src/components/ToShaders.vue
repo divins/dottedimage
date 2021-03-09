@@ -19,6 +19,12 @@
       <canvas class="webgl"></canvas>
     </div>
   </div>
+  <a class="demo repo"
+    :title="links.repo.title"
+    :href="links.repo.href"
+    target="_blank">
+    {{ links.repo.label }}
+  </a>
 </template>
 
 <script>
@@ -44,6 +50,13 @@ export default {
   },
   data() {
     return {
+      links: {
+        repo: {
+          title: "View source code for shaders animation",
+          label: "< >",
+          href: "https://github.com/divins/dottedimage/blob/master/src/components/ToShaders.vue"
+        }
+      },
       gridOptions: {
         spacingX: 10,
         spacingY: 10,
@@ -371,5 +384,9 @@ img#output_image {
   top: 0px;
   left: 0px;
   opacity: 0;
+}
+a.demo {
+  background: #333;
+  color: #ddd;
 }
 </style>
