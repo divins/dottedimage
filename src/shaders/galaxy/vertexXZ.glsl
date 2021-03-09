@@ -1,12 +1,12 @@
 uniform float uSize;
-    attribute float aScale;
-    uniform float uTime;
-    attribute vec3 aRandomness;
-    uniform float uSpinVelocity;
+attribute float aScale;
+uniform float uTime;
+attribute vec3 aRandomness;
+uniform float uSpinVelocity;
 
-    varying vec3 vColor;
+varying vec3 vColor;
 
-    void main(){
+void main(){
     /**
     * Position
     */
@@ -16,12 +16,12 @@ uniform float uSize;
     float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
     angle += angleOffset;
 
-    //modelPosition.x = cos(angle);
-    //modelPosition.y = sin(angle);
-    //modelPosition.z = cos(angle);
+    // Portal like
+    /* modelPosition.x = cos(angle);
+    modelPosition.z = sin(angle); */
 
+    // Galaxy
     modelPosition.x = cos(angle) * distanceToCenter;
-    //modelPosition.y = cos(angle) * distanceToCenter;
     modelPosition.z = sin(angle) * distanceToCenter;
 
     modelPosition.xyz += aRandomness;

@@ -32,6 +32,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
+import dotsShaderVertex from '../shaders/dots/vertex.glsl';
+import dotsShaderFragment from '../shaders/dots/fragment.glsl';
 
 let scene = null;
 let camera = null;
@@ -153,48 +155,8 @@ export default {
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         vertexColors: true,
-        vertexShader: `
-          uniform float uSize;
-
-          attribute float aScale;
-          uniform float uTime;
-          uniform float uZDisplacement;
-
-          varying vec3 vColor;
-
-          void main(){
-            // Position
-            vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-            modelPosition.z += sin(aScale * 10.0 - uTime) * uZDisplacement;
-
-            vec4 viewPosition = viewMatrix * modelPosition;
-            vec4 projectedPosition = projectionMatrix * viewPosition;
-            gl_Position = projectedPosition;
-
-            // Size
-            if(uZDisplacement == 0.0){
-              gl_PointSize = uSize * aScale * abs(sin(aScale * 10.0 - uTime*0.5));
-            } else {
-              gl_PointSize = uSize * aScale;
-            }
-
-            vColor = color;
-          }
-        `,
-        fragmentShader: `
-          varying vec3 vColor;
-
-          void main(){
-            float strength = distance(gl_PointCoord, vec2(0.5));
-            strength = 1.0 - strength;
-            strength = pow(strength, 5.0);
-            strength = step(0.5, strength);
-
-            vec3 color = vec3(strength) * vColor;
-
-            gl_FragColor = vec4(color, 1.0);
-          }
-        `,
+        vertexShader: dotsShaderVertex,
+        fragmentShader: dotsShaderFragment,
         uniforms: {
           uSize: { value: this.gridOptions.particleSize * renderer.getPixelRatio() },
           uZDisplacement: { value: this.animation.zDisplacement },

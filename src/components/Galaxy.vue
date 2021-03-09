@@ -17,7 +17,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
-import galaxyShaderVertex from '../shaders/galaxy/vertex.glsl';
+import galaxyShaderVertexXZ from '../shaders/galaxy/vertexXZ.glsl';
+import galaxyShaderVertexXY from '../shaders/galaxy/vertexXY.glsl';
+import galaxyShaderVertexYZ from '../shaders/galaxy/vertexYZ.glsl';
 import galaxyShaderFragment from '../shaders/galaxy/fragment.glsl';
 
 let scene = null;
@@ -79,6 +81,8 @@ export default {
         }
       },
       parameters: {
+        affectedAxes: "XZ",
+        selectedVertex: galaxyShaderVertexXZ,
         particleCount: 200000,
         particleSize: 15,
         radius: 5,
@@ -120,6 +124,8 @@ export default {
        * Geometry
        */
       geometry = new THREE.BufferGeometry();
+
+      console.log(this.parameters.affectedAxes);
 
       const positions = new Float32Array(this.parameters.particleCount * 3);
       const colors = new Float32Array(this.parameters.particleCount * 3);
@@ -174,7 +180,7 @@ export default {
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         vertexColors: true,
-        vertexShader: galaxyShaderVertex,
+        vertexShader: this.parameters.selectedVertex,
         fragmentShader: galaxyShaderFragment,
         uniforms: {
           uSize: { value: this.parameters.particleSize * renderer.getPixelRatio() },
@@ -202,6 +208,8 @@ export default {
         .onFinishChange(this.generateGalaxy);
       // Galaxy params
       const galaxyFolder = this.elements.gui.addFolder("Galaxy");
+      galaxyFolder.add(this.parameters, "affectedAxes", ["XZ", "XY", "YZ"])
+        .onFinishChange(this.updateSelectedVertex);
       galaxyFolder.add(this.parameters, "spinVelocity")
         .min(0.01).max(1).step(0.01)
         .onFinishChange(this.generateGalaxy);
@@ -216,6 +224,7 @@ export default {
         .onFinishChange(this.generateGalaxy);
       galaxyFolder.add(this.parameters, "randomnessPower")
         .min(1).max(10).step(0.001)
+        .listen(this.parameters, "randomnessPower")
         .onFinishChange(this.generateGalaxy);
       galaxyFolder.addColor(this.parameters, "insideColor")
         .onFinishChange(this.generateGalaxy);
@@ -300,6 +309,18 @@ export default {
       var statsElement = document.getElementById("stats");
       statsElement.parentNode.removeChild(statsElement);
       cancelAnimationFrame(requestAnimationFrameId);
+    },
+    updateSelectedVertex: function() {
+      if (this.parameters.affectedAxes === "XZ") {
+        this.parameters.selectedVertex = galaxyShaderVertexXZ;
+      } else if (this.parameters.affectedAxes === "XY") {
+        this.parameters.selectedVertex = galaxyShaderVertexXY;
+        this.parameters.randomnessPower = 5.0;
+      } else if (this.parameters.affectedAxes === "YZ") {
+        this.parameters.selectedVertex = galaxyShaderVertexYZ;
+        this.parameters.randomnessPower = 5.0;
+      }
+      this.generateGalaxy();
     }
   },
   created() {
