@@ -16,10 +16,6 @@ void main(){
     float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
     angle += angleOffset;
 
-    // Portal like
-    /* modelPosition.x = cos(angle);
-    modelPosition.z = sin(angle); */
-
     // Galaxy
     modelPosition.x = cos(angle) * distanceToCenter;
     modelPosition.z = sin(angle) * distanceToCenter;

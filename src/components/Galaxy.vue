@@ -20,6 +20,9 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 import galaxyShaderVertexXZ from '../shaders/galaxy/vertexXZ.glsl';
 import galaxyShaderVertexXY from '../shaders/galaxy/vertexXY.glsl';
 import galaxyShaderVertexYZ from '../shaders/galaxy/vertexYZ.glsl';
+import galaxyShaderVertexXZNoDistance from '../shaders/galaxy/vertexXZNoDistance.glsl';
+import galaxyShaderVertexXYNoDistance from '../shaders/galaxy/vertexXYNoDistance.glsl';
+import galaxyShaderVertexYZNoDistance from '../shaders/galaxy/vertexYZNoDistance.glsl';
 import galaxyShaderFragment from '../shaders/galaxy/fragment.glsl';
 
 let scene = null;
@@ -83,6 +86,7 @@ export default {
       parameters: {
         affectedAxes: "XZ",
         selectedVertex: galaxyShaderVertexXZ,
+        distanceHasImpact: true,
         particleCount: 200000,
         particleSize: 15,
         radius: 5,
@@ -210,6 +214,8 @@ export default {
       const galaxyFolder = this.elements.gui.addFolder("Galaxy");
       galaxyFolder.add(this.parameters, "affectedAxes", ["XZ", "XY", "YZ"])
         .onFinishChange(this.updateSelectedVertex);
+      galaxyFolder.add(this.parameters, "distanceHasImpact")
+        .onFinishChange(this.updateSelectedVertex);
       galaxyFolder.add(this.parameters, "spinVelocity")
         .min(0.01).max(1).step(0.01)
         .onFinishChange(this.generateGalaxy);
@@ -312,12 +318,15 @@ export default {
     },
     updateSelectedVertex: function() {
       if (this.parameters.affectedAxes === "XZ") {
-        this.parameters.selectedVertex = galaxyShaderVertexXZ;
+        this.parameters.selectedVertex = this.parameters.distanceHasImpact ?
+          galaxyShaderVertexXZ : galaxyShaderVertexXZNoDistance;
       } else if (this.parameters.affectedAxes === "XY") {
-        this.parameters.selectedVertex = galaxyShaderVertexXY;
+        this.parameters.selectedVertex = this.parameters.distanceHasImpact ?
+          galaxyShaderVertexXY : galaxyShaderVertexXYNoDistance;
         this.parameters.randomnessPower = 5.0;
       } else if (this.parameters.affectedAxes === "YZ") {
-        this.parameters.selectedVertex = galaxyShaderVertexYZ;
+        this.parameters.selectedVertex = this.parameters.distanceHasImpact ?
+          galaxyShaderVertexYZ : galaxyShaderVertexYZNoDistance;
         this.parameters.randomnessPower = 5.0;
       }
       this.generateGalaxy();

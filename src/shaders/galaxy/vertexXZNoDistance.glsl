@@ -16,9 +16,9 @@ void main(){
     float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
     angle += angleOffset;
 
-    // Diabolo
-    modelPosition.y = cos(angle) * distanceToCenter;
-    modelPosition.z = sin(angle) * distanceToCenter;
+    // Portal like
+    modelPosition.x = cos(angle);
+    modelPosition.z = sin(angle);
 
     modelPosition.xyz += aRandomness;
 

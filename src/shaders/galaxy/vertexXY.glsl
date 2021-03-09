@@ -16,10 +16,6 @@ void main(){
     float angleOffset = (1.0 / distanceToCenter) * uTime * uSpinVelocity;
     angle += angleOffset;
 
-    // Tube
-    /* modelPosition.x = cos(angle);
-    modelPosition.y = sin(angle); */
-
     // Triple spiral
     modelPosition.x = cos(angle) * distanceToCenter;
     modelPosition.y = sin(angle) * distanceToCenter;
