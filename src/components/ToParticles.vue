@@ -1,15 +1,25 @@
 <template>
-  <div class="hello">
-    <div class="navbar">
-      <ul>
+  <div class="labs">
+    <div class="instructions">
+      <p>Please select an image to convert it to dots!</p>
+      <input type="file" accept="image/*" @input="upload" />
+    </div>
+    <div class="info">
+      <p>
+        Take into account that this experiment is using particles<br>
+        but the animation is done through requestAnimationFrame<br>
+        this is not performant...
+      </p>
+      <ul class="grid-info">
         <li>Cols: {{ gridInfo.cols }}</li>
         <li>Rows: {{ gridInfo.rows }}</li>
         <li>Artifacts: {{ gridInfo.artifactsCount }}</li>
       </ul>
-      <input type="file" accept="image/*" @input="upload" />
     </div>
-    <img id="output_image" @load="process" />
-    <canvas class="webgl"></canvas>
+    <div class="experiment">
+      <img id="output_image" @load="process" />
+      <canvas class="webgl"></canvas>
+    </div>
   </div>
 </template>
 
@@ -300,6 +310,28 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.labs {
+  display: grid;
+  grid-template-columns: 5% 45% 45% 5%;
+  grid-template-rows: 100px auto;
+  grid-template-areas:
+    ". instructions info ."
+    ". experiment experiment .";
+}
+
+.instructions {
+  grid-area: instructions;
+  font-weight: bold;
+}
+
+.info {
+  grid-area: info;
+  font-size: 0.9em;
+}
+
+.experiment {
+  grid-area: experiment;
+}
 h3 {
   margin: 40px 0 0;
 }

@@ -1,16 +1,23 @@
 <template>
-  <div class="hello">
-    <div class="navbar">
-      <ul>
+  <div class="labs">
+    <div class="instructions">
+      <p>Please select an image to convert it to dots!</p>
+      <input type="file" accept="image/*" @input="upload" />
+    </div>
+    <div class="info">
+      <p>
+        This experiment is using shaders for the animation!
+      </p>
+      <ul class="grid-info">
         <li>Cols: {{ gridInfo.cols }}</li>
         <li>Rows: {{ gridInfo.rows }}</li>
         <li>Artifacts: {{ gridInfo.artifactsCount }}</li>
       </ul>
-      <input type="file" accept="image/*" @input="upload" />
-      <button @click="cleanScene">Clean</button>
     </div>
-    <img id="output_image" @load="process" />
-    <canvas class="webgl"></canvas>
+    <div class="experiment">
+      <img id="output_image" @load="process" />
+      <canvas class="webgl"></canvas>
+    </div>
   </div>
 </template>
 
@@ -42,16 +49,16 @@ export default {
         spacingY: 10,
         particleSize: 15
       },
-      sizes: {
-        width: 0,
-        height: 0
-      },
       positionMultiplier: 0.01,
       canvasMultiplier: 1,
+      imageSize: {
+        width: null,
+        height: null
+      },
       gridInfo: {
         cols: null,
         rows: null,
-        artifactsCount: null
+        artifactsCount: null,
       },
       elements: {
         gui: null,
@@ -75,19 +82,23 @@ export default {
     },
     process: function() {
       this.cleanScene();
-      this.setCanvas();
 
       var output = document.getElementById("output_image");
+      this.imageSize.width = output.width;
+      this.imageSize.height = output.height;
       var canvas = document.createElement("canvas");
       var ctx = canvas.getContext("2d");
-      canvas.width = output.width;
-      canvas.height = output.height;
-      ctx.drawImage(output, 0, 0, output.width, output.height);
+      canvas.width = this.imageSize.width;
+      canvas.height = this.imageSize.height;
+      ctx.drawImage(output, 0, 0, canvas.width, canvas.height);
 
-      this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
-      this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
+      this.gridInfo.cols = Math.round(this.imageSize.width / this.gridOptions.spacingX);
+      this.gridInfo.rows = Math.round(this.imageSize.height / this.gridOptions.spacingY);
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
 
+      console.log(this.elements.webglCanvas);
+      this.setCanvas();
+      console.log(this.elements.webglCanvas);
       /**
        * Geometry
        */
@@ -97,6 +108,7 @@ export default {
       const colors = new Float32Array(this.gridInfo.artifactsCount * 3);
       const scale = new Float32Array(this.gridInfo.artifactsCount * 1);
 
+      console.log(this.gridInfo);
       for (let i = 0; i < this.gridInfo.cols; i++) {
         const posX = i * this.gridOptions.spacingX;
         for (let z = 0; z < this.gridInfo.rows; z++) {
@@ -148,12 +160,10 @@ export default {
 
             // Size
             if(uZDisplacement == 0.0){
-              gl_PointSize = uSize * aScale * abs(sin(aScale * 10.0 - uTime));
+              gl_PointSize = uSize * aScale * abs(sin(aScale * 10.0 - uTime*0.5));
             } else {
               gl_PointSize = uSize * aScale;
             }
-            //gl_PointSize = uSize * aScale * abs(sin(aScale * 10.0 - uTime));
-            //gl_PointSize *= (1.0 / - viewPosition.z);
 
             vColor = color;
           }
@@ -165,6 +175,7 @@ export default {
             float strength = distance(gl_PointCoord, vec2(0.5));
             strength = 1.0 - strength;
             strength = pow(strength, 5.0);
+            strength = step(0.5, strength);
 
             vec3 color = vec3(strength) * vColor;
 
@@ -225,24 +236,24 @@ export default {
     },
     setCanvas: function() {
       // Update sizes
-      let output = document.getElementById("output_image");
-      this.sizes.width = output.width * this.canvasMultiplier;
-      this.sizes.height = output.height * this.canvasMultiplier;
+      //let output = document.getElementById("output_image");
+      /*this.sizes.width = output.width * this.canvasMultiplier;
+      this.sizes.height = output.height * this.canvasMultiplier;*/
 
       // Update camera
-      camera.aspect = this.sizes.width / this.sizes.height;
-      camera.position.x = (output.width / 2) * this.positionMultiplier;
-      camera.position.y = (output.height / 2) * this.positionMultiplier;
+      camera.aspect = this.imageSize.width / this.imageSize.height;
+      camera.position.x = (this.imageSize.width / 2) * this.positionMultiplier;
+      camera.position.y = (this.imageSize.height / 2) * this.positionMultiplier;
       camera.position.z = 5;
       controls.target = new THREE.Vector3(
-        (output.width / 2) * this.positionMultiplier,
-        (output.height / 2) * this.positionMultiplier,
+        (this.imageSize.width / 2) * this.positionMultiplier,
+        (this.imageSize.height / 2) * this.positionMultiplier,
         0
       );
       camera.updateProjectionMatrix();
 
       // Update renderer
-      renderer.setSize(this.sizes.width, this.sizes.height);
+      renderer.setSize(this.imageSize.width, this.imageSize.height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     },
     initCanvas: function() {
@@ -301,6 +312,30 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.labs {
+  display: grid;
+  grid-template-columns: 5% 45% 45% 5%;
+  grid-template-rows: 100px auto;
+  grid-template-areas:
+    ". instructions info ."
+    ". experiment experiment .";
+}
+
+.instructions {
+  grid-area: instructions;
+  font-weight: bold;
+}
+
+.info {
+  grid-area: info;
+  font-size: 0.9em;
+}
+
+.experiment {
+  grid-area: experiment;
+  position: relative;
+}
+
 h3 {
   margin: 40px 0 0;
 }
@@ -319,11 +354,22 @@ a {
   max-width: 90%;
 } */
 canvas.webgl {
-  width: 0px;
-  max-width: 90%;
+  max-width: 100%;
+  width: auto;
   height: auto;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+    width: 0px;
+  height: 0px;
 }
 img#output_image {
-  max-width: 50%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  opacity: 0;
 }
 </style>

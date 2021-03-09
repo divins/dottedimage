@@ -1,12 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import Circles from "../views/Circles.vue";
+import Shaders from "../views/Shaders.vue";
 
 const routes = [
-  {
-    path: "/",
-    name: "Circles",
-    component: Circles
-  },
   {
     path: "/particles",
     name: "Particles",
@@ -17,10 +12,9 @@ const routes = [
       import(/* webpackChunkName: "about" */ "../views/Particles.vue")
   },
   {
-    path: "/shaders",
+    path: "/",
     name: "Shaders",
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/Shaders.vue")
+    component: Shaders
   },
   {
     path: "/galaxy",

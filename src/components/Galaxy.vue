@@ -6,14 +6,8 @@
     target="_blank">
     {{ links.repo.label }}
   </a>
-  <!-- <a class="demo tutorial"
-    :title="links.tutorial.title"
-    :href="links.tutorial.href"
-    target="_blank">
-    {{ links.tutorial.label }}
-  </a> -->
   <p class="disclaimer">
-    This demo has been created following a <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{ links.brunos.label }}n</a> tutorial. 
+    This demo has been created following a <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{ links.brunos.label }}</a> tutorial. 
     Give it a <a :href="links.tutorial.href" :title="links.tutorial.title" target="_blank">try</a>!
   </p>
 </template>

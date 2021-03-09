@@ -1,41 +1,57 @@
 <template>
   <div id="nav">
-    <router-link to="/">To Circles</router-link> |
-    <router-link to="/particles">To Particles</router-link> | 
-    <router-link to="/shaders">To Shaders</router-link> | 
-    <router-link to="/galaxy">Galaxy</router-link>
+    <router-link :to="{ name: 'Particles' }">Particles</router-link> | 
+    <router-link :to="{ name: 'Shaders' }">Shaders</router-link> | 
+    <router-link :to="{ name: 'Galaxy' }">Galaxy</router-link>
   </div>
   <router-view />
 </template>
 
 <style>
+body {
+  margin: 0px;
+  outline: none;
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-rows: auto;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  grid-column: 1 / 1;
+  grid-row: 1 / 1;
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-rows: 60px auto;
+  grid-template-areas:
+    "header"
+    "content";
 }
 
 #nav {
-  padding: 20px;
+  margin: 20px;
   position: relative;
   top: 0px;
   left: 0px;
   right: 0px;
-  height: 60px;
   z-index: 100;
   pointer-events: none;
+  grid-area: header;
 }
-
 #nav a {
   font-weight: bold;
   color: #767977;
   pointer-events: initial;
 }
-
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+.labs {
+  grid-area: content;
 }
 
 a.demo {

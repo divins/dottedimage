@@ -1,7 +1,5 @@
 <template>
-  <div class="home">
-    <ToShaders msg="Using Shaders to repaint an image" />
-  </div>
+  <ToShaders msg="Using Shaders to repaint an image" />
 </template>
 
 <script>
