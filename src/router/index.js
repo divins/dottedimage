@@ -21,6 +21,12 @@ const routes = [
     name: "Galaxy",
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/GalaxyView.vue")
+  },
+  {
+    path: "/post-processing",
+    name: "PostProcessing",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/PostProcessing.vue")
   }
 ];
 
