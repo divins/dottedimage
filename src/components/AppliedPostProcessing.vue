@@ -166,7 +166,7 @@ export default {
       );
       const gltfLoader = new GLTFLoader(loadingManager);
       const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
-      const textureLoader = new THREE.TextureLoader()
+      const textureLoader = new THREE.TextureLoader();
 
       /**
        * Overlay
@@ -222,10 +222,11 @@ export default {
        * Models
        */
       gltfLoader.load(
-         "/assets/models/FlightHelmet/glTF/FlightHelmet.gltf",
+         "/assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf",
         (gltf) => {
-          gltf.scene.scale.set(10, 10, 10);
-          gltf.scene.position.set(0, -4, 0);
+          //gltf.scene.scale.set(10, 10, 10);
+          //gltf.scene.position.set(0, -4, 0);
+          gltf.scene.scale.set(2, 2, 2);
           gltf.scene.rotation.y = Math.PI * 0.5;
           scene.add(gltf.scene);
 
