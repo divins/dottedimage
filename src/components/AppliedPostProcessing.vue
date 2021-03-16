@@ -25,8 +25,6 @@ let scene = null;
 let camera = null;
 let renderer = null;
 let controls = null;
-let overlayGeo = null;
-let overlayMat = null;
 const clock = new THREE.Clock();
 
 let requestAnimationFrameId = null;
@@ -90,7 +88,11 @@ export default {
         gui: null,
         stats: new Stats(),
         webglCanvas: null,
-        loadingBarElement: null
+        loadingBarElement: null,
+        overlay: {
+          geo: null,
+          mat: null
+        }
       }
     };
   },
@@ -130,7 +132,7 @@ export default {
             0.5,
             () => {
               gsap.to(
-                overlayMat.uniforms.uOpacity,
+                this.elements.overlay.mat.uniforms.uOpacity,
                 { duration: 3.0, delay: 1.0, value: 0.0 }
               );
               this.elements.loadingBarElement.classList.add("ended");
@@ -153,8 +155,8 @@ export default {
       /**
        * Overlay
        */
-      overlayGeo = new THREE.PlaneBufferGeometry(2, 2, 1, 1);
-      overlayMat = new THREE.ShaderMaterial({
+      this.elements.overlay.geo = new THREE.PlaneBufferGeometry(2, 2, 1, 1);
+      this.elements.overlay.mat = new THREE.ShaderMaterial({
         transparent: true,
         uniforms: {
             uOpacity: { value: 1.0 }
@@ -178,7 +180,7 @@ export default {
         `
       });
 
-      const overlay = new THREE.Mesh(overlayGeo, overlayMat);
+      const overlay = new THREE.Mesh(this.elements.overlay.geo, this.elements.overlay.mat);
       scene.add(overlay);
 
       /**
@@ -203,8 +205,6 @@ export default {
       /**
        * Models
        */
-      console.log(gltfLoader);
-      console.log("/assets/models/FlightHelmet/glTF/FlightHelmet.gltf");
       gltfLoader.load(
          "/assets/models/FlightHelmet/glTF/FlightHelmet.gltf",
         (gltf) => {
