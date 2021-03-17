@@ -2,17 +2,18 @@
   <canvas class="webgl"></canvas>
   <div class="loading-bar"></div>
   <div class="point point-0">
-        <div class="label">1</div>
-        <div class="description">Front and top screen with HUD aggregating terrain and battle informations.</div>
-    </div>
-    <div class="point point-1">
-        <div class="label">2</div>
-        <div class="description">Ventilation with air purifier and detection of environment toxicity.</div>
-    </div>
-    <div class="point point-2">
-        <div class="label">3</div>
-        <div class="description">Cameras supporting night vision and heat vision with automatic adjustment.</div>
-    </div>
+    <div class="label">1</div>
+    <div class="description">Front and top screen with HUD aggregating terrain and battle informations.</div>
+  </div>
+  <div class="point point-1">
+    <div class="label">2</div>
+    <div class="description">Ventilation with air purifier and detection of environment toxicity.</div>
+  </div>
+  <div class="point point-2">
+    <div class="label">3</div>
+    <div class="description">Cameras supporting night vision and heat vision with automatic adjustment.</div>
+  </div>
+
   <a class="demo repo"
     :title="links.repo.title"
     :href="links.repo.href"
@@ -28,22 +29,21 @@
 <script>
 import * as THREE from "three";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { gsap } from "gsap";
+import { gsap } from 'gsap';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { Raycaster } from "three";
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass.js';
-import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass.js'
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js'
+import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { PixelShader } from 'three/examples/jsm/shaders/PixelShader.js';
 
-const clock = new THREE.Clock();
 let scene = null;
 let camera = null;
 let renderer = null;
@@ -55,6 +55,67 @@ let dotScreenPass = null;
 let requestAnimationFrameId = null;
 
 const raycaster = new Raycaster();
+
+let sceneReady = false;
+
+const stats = new Stats();
+let points = [];
+const setPoints = () => {
+    points = [
+      {
+        position: new THREE.Vector3(1.55, 0.3, -0.6),
+        element: document.querySelector('.point-0')
+    },
+    {
+        //position: new THREE.Vector3(0.5, 0.8, -1.6),
+        position: new THREE.Vector3(-1.6, 0.4, 2.4),
+        element: document.querySelector('.point-1')
+    },
+    {
+        position: new THREE.Vector3(1.6, -1.3, -0.7),
+        element: document.querySelector('.point-2')
+    }
+    ]
+}
+
+const tick = function() {
+      controls.update();
+
+      if (sceneReady) {
+        for (const point of points) {
+          const screenPosition = point.position.clone();
+          screenPosition.project(camera);
+          
+          raycaster.setFromCamera(screenPosition, camera);
+          const intersects = raycaster.intersectObjects(scene.children, true); // true for recursive
+          if (intersects.length === 0) {
+            point.element.classList.add("visible");
+          } else {
+            const intersectionDistance = intersects[0].distance;
+            const pointDistance = point.position.distanceTo(camera.position);
+            if (intersectionDistance < pointDistance) {
+              point.element.classList.remove("visible");
+            } else {
+              point.element.classList.add("visible");
+            }
+          }
+  
+          //console.log(screenPosition)
+          const translateX = screenPosition.x * sizes.width * 0.5;
+          const translateY = -screenPosition.y * sizes.height * 0.5;
+  
+          //point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
+          point.element.style.transform = `translate(${translateX}px, ${translateY}px)`;
+        }
+      }
+
+      // Render
+      //renderer.render(scene, camera)
+      effectComposer.render();
+      requestAnimationFrameId = requestAnimationFrame(tick);
+
+      stats.update();
+    }
 
 /**
  * Base
@@ -117,7 +178,7 @@ export default {
       },
       elements: {
         gui: null,
-        stats: new Stats(),
+        //stats: new Stats(),
         webglCanvas: null,
         loadingBarElement: null,
         overlay: {
@@ -172,7 +233,7 @@ export default {
               );
               this.elements.loadingBarElement.classList.add("ended");
               this.elements.loadingBarElement.style.transform = "";
-              this.sceneInfo.ready = true;
+              sceneReady = true;
             }
           );
         },
@@ -187,7 +248,7 @@ export default {
       const gltfLoader = new GLTFLoader(loadingManager);
       const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
       const textureLoader = new THREE.TextureLoader();
-
+      raycaster
       /**
        * Overlay
        */
@@ -332,7 +393,6 @@ export default {
       const tintPass = new ShaderPass(TintShader);
       //tintPass.material.uniforms.uTint.value = new THREE.Color(0x00000)
       tintPass.material.uniforms.uTint.value = new THREE.Vector3();
-      tintPass.enabled = false;
       effectComposer.addPass(tintPass);
 
       const tintFolder = this.elements.gui.addFolder("Tint");
@@ -529,6 +589,11 @@ export default {
         const smaaPass = new SMAAPass();
         effectComposer.addPass(smaaPass);
       }
+
+      
+      console.log(document.querySelector('.point-0'))
+      setPoints();
+      tick();
     },
     initCanvas: function() {
       // Update sizes
@@ -547,7 +612,7 @@ export default {
       controls = new OrbitControls(camera, this.elements.webglCanvas);
       controls.enableDamping = true;
 
-      /** 
+         /** 
        * Points
        */
       this.points.push({
@@ -584,7 +649,7 @@ export default {
       let container = document.createElement("div");
       container.setAttribute("id", "stats");
       document.body.appendChild(container);
-      container.appendChild(this.elements.stats.dom);
+      container.appendChild(stats.dom);
 
       this.elements.gui = new dat.GUI({ width: 300 });
 
@@ -593,69 +658,27 @@ export default {
 
       if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
       {
-        RenderTargetClass = THREE.WebGLMultisampleRenderTarget
-        console.log('Using WebGLMultisampleRenderTarget')
+          RenderTargetClass = THREE.WebGLMultisampleRenderTarget
+          console.log('Using WebGLMultisampleRenderTarget')
       }
       else
       {
-        RenderTargetClass = THREE.WebGLRenderTarget
-        console.log('Using WebGLRenderTarget')
+          RenderTargetClass = THREE.WebGLRenderTarget
+          console.log('Using WebGLRenderTarget')
       }
 
       const renderTarget = new RenderTargetClass(
-        800,
-        600,
-        {
-          minFilter: THREE.LinearFilter,
-          magFilter: THREE.LinearFilter,
-          format: THREE.RGBAFormat,
-          encoding: THREE.sRGBEncoding
-        }
+          800,
+          600,
+          {
+              minFilter: THREE.LinearFilter,
+              magFilter: THREE.LinearFilter,
+              format: THREE.RGBAFormat,
+              encoding: THREE.sRGBEncoding
+          }
       );
       // Composer
       effectComposer = new EffectComposer(renderer, renderTarget);
-    },
-    tick: function() {
-      const elapsedTime = clock.getElapsedTime();
-      elapsedTime;
-
-      this.elements.stats.update();
-      controls.update();
-
-      // POI position update
-      if (this.sceneInfo.ready) {
-        for (const point of this.points) {
-          const screenPosition = point.position.clone();
-          screenPosition.project(camera);
-  
-          raycaster.setFromCamera(screenPosition, camera);
-          const intersects = raycaster.intersectObjects(scene.children, true); // true for recursive
-          intersects;
-          if (intersects.length === 0) {
-            point.element.classList.add("visible");
-          } else {
-            const intersectionDistance = intersects[0].distance;
-            const pointDistance = point.position.distanceTo(camera.position);
-            if (intersectionDistance < pointDistance) {
-              point.element.classList.remove("visible");
-            } else {
-              point.element.classList.add("visible");
-            }
-          }
-  
-          //console.log(screenPosition)
-          const translateX = screenPosition.x * sizes.width * 0.5;
-          const translateY = -screenPosition.y * sizes.height * 0.5;
-  
-          //point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
-          point.element.style.transform = `translate(${translateX}px, ${translateY}px)`;
-        }
-      }
-
-      // Render
-      renderer.render(scene, camera)
-      //effectComposer.render();
-      requestAnimationFrameId = requestAnimationFrame(this.tick);
     },
     cleanAll: function() {
       /*if (points !== null) {
@@ -668,7 +691,7 @@ export default {
       var statsElement = document.getElementById("stats");
       statsElement.parentNode.removeChild(statsElement);
       cancelAnimationFrame(requestAnimationFrameId);
-    }
+    },
   },
   created() {
     console.log("Created");
@@ -678,7 +701,6 @@ export default {
     console.log("Mounted");
     this.initCanvas();
     this.initScene();
-    this.tick();
   },
   beforeUnmount() {
     console.log("Before unmount");
@@ -698,72 +720,72 @@ p.disclaimer {
   color: #eee;
 }
 .loading-bar {
-    position: absolute;
-    top: 50%;
-    width: 100%;
-    height: 2px;
-    background-color: white;
-    transform: scaleX(0);
-    transform-origin: top left;
-    transition: transform 0.5s;
-    will-change: transform;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background-color: white;
+  transform: scaleX(0);
+  transform-origin: top left;
+  transition: transform 0.5s;
+  will-change: transform;
 }
 
 .loading-bar.ended {
-    transform: scaleX(0);
-    transform-origin: top right;
-    transition: transform 1.5s ease-in-out;
+  transform: scaleX(0);
+  transform-origin: top right;
+  transition: transform 1.5s ease-in-out;
 }
 
 .point {
-    position: absolute;
-    top: 50%;
-    left: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
 }
 
 .point:hover .description {
-    opacity: 1;
+  opacity: 1;
 }
 
 .point.visible .label {
-    transform: scale(1, 1);
+  transform: scale(1, 1);
 }
 
 .point .label {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    top: -20px;
-    left: -20px;
-    border-radius: 50%;
-    background: #00000077;
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    line-height: 40px;
-    font-weight: 100;
-    font-size: 14px;
-    cursor: help;
-    transform: scale(0, 0); /* Sometimes you need to put: 0.001 */
-    transition: transform 0.3s;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  left: -20px;
+  border-radius: 50%;
+  background: #00000077;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  line-height: 40px;
+  font-weight: 100;
+  font-size: 14px;
+  cursor: help;
+  transform: scale(0, 0); /* Sometimes you need to put: 0.001 */
+  transition: transform 0.3s;
 }
 
 .point .description {
-    position: absolute;
-    top: 30px;
-    left: -120px;
-    width: 200px;
-    padding: 20px;
-    border-radius: 4px;
-    background: #00000077;
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    line-height: 1.3em;
-    font-weight: 100;
-    font-size: 14px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
+  position: absolute;
+  top: 30px;
+  left: -120px;
+  width: 200px;
+  padding: 20px;
+  border-radius: 4px;
+  background: #00000077;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  line-height: 1.3em;
+  font-weight: 100;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
 }
 </style>
