@@ -653,8 +653,8 @@ export default {
       }
 
       // Render
-      renderer.render(scene, camera)
-      //effectComposer.render();
+      //renderer.render(scene, camera)
+      effectComposer.render();
       requestAnimationFrameId = requestAnimationFrame(this.tick);
     },
     cleanAll: function() {
