@@ -27,6 +27,12 @@ const routes = [
     name: "PostProcessing",
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/PostProcessing.vue")
+  },
+  {
+    path: "/scattering",
+    name: "Scattering",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/ScatteringView.vue")
   }
 ];
 
