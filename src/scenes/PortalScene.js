@@ -305,54 +305,66 @@ export default class PortalScene {
     });
   }
 
-  fireflies() {
-    const firefliesGeo = new THREE.BufferGeometry();
-    const firefliesCount = 30;
-    const firefliesPositions = new Float32Array(firefliesCount * 3);
-    const firefliesScales = new Float32Array(firefliesCount * 1);
+    fireflies() {
+        this.firefliesGeo = new THREE.BufferGeometry();
+        this.firefliesMat = new THREE.ShaderMaterial({
+            vertexShader: firefliesVertexShader,
+            fragmentShader: firefliesFragmentShader,
+            transparent: true,
+            //depthTest: false,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            uniforms: {
+              uTime: { value: 0.0 },
+              uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+              uSize: { value: 100.0 }
+            }
+          });
 
-    for (let i = 0; i < firefliesCount; i++) {
+        this.threeOptions.fireflies = {};
+        this.threeOptions.fireflies.count = 30;
+
+        this.gui.add(this.threeOptions.fireflies, "count")
+            .name("Fireflies count")
+            .min(1).max(1000).step(10)
+            .onFinishChange(() => { this.generateFireflies(); });
+
+        this.gui.add(this.firefliesMat.uniforms.uSize, "value")
+            .name("Fireflies size")
+            .min(0).max(500).step(5);
+
+        this.generateFireflies();
+        
+        this.threeObjects.geos.push(this.firefliesGeo);
+        this.threeObjects.mats.push(this.firefliesMat);
+        this.threeObjects.meshes.push(this.firefliesMesh);
+    }
+
+  generateFireflies() {
+    const firefliesPositions = new Float32Array(this.threeOptions.fireflies.count * 3);
+    const firefliesScales = new Float32Array(this.threeOptions.fireflies.count * 1);
+
+    if(this.firefliesMesh !== undefined) {
+        this.scene.remove(this.firefliesMesh);
+    }
+
+    for (let i = 0; i < this.threeOptions.fireflies.count; i++) {
       firefliesPositions[i * 3 + 0] = (Math.random() - 0.5) * 4;
       firefliesPositions[i * 3 + 1] = Math.random() * 2;
       firefliesPositions[i * 3 + 2] = (Math.random() - 0.5) * 4;
 
       firefliesScales[i] = Math.random() * 2;
     }
-    firefliesGeo.setAttribute(
+    this.firefliesGeo.setAttribute(
       "position",
       new THREE.BufferAttribute(firefliesPositions, 3)
     );
-    firefliesGeo.setAttribute(
+    this.firefliesGeo.setAttribute(
       "aScale",
       new THREE.BufferAttribute(firefliesScales, 1)
     );
 
-    this.firefliesMat = new THREE.ShaderMaterial({
-      vertexShader: firefliesVertexShader,
-      fragmentShader: firefliesFragmentShader,
-      transparent: true,
-      //depthTest: false,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        uTime: { value: 0.0 },
-        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-        uSize: { value: 100.0 }
-      }
-    });
-
-    this.gui
-      .add(this.firefliesMat.uniforms.uSize, "value")
-      .min(0)
-      .max(500)
-      .step(5)
-      .name("firefliesSize");
-
-    const firefliesMesh = new THREE.Points(firefliesGeo, this.firefliesMat);
-    this.scene.add(firefliesMesh);
-
-    this.threeObjects.geos.push(firefliesGeo);
-    this.threeObjects.mats.push(this.firefliesMat);
-    this.threeObjects.meshes.push(firefliesMesh);
+    this.firefliesMesh = new THREE.Points(this.firefliesGeo, this.firefliesMat);
+    this.scene.add(this.firefliesMesh);
   }
 }
