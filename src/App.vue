@@ -1,9 +1,10 @@
 <template>
   <div id="nav">
-    <router-link :to="{ name: 'Particles' }">Particles</router-link> | 
-    <router-link :to="{ name: 'Shaders' }">Shaders</router-link> | 
+    <router-link :to="{ name: 'Particles' }">Particles</router-link> |
+    <router-link :to="{ name: 'Shaders' }">Shaders</router-link> |
     <router-link :to="{ name: 'Galaxy' }">Galaxy</router-link> |
-    <router-link :to="{ name: 'PostProcessing' }">Post-Processing</router-link> | 
+    <router-link :to="{ name: 'PostProcessing' }">Post-Processing</router-link>
+    |
     <router-link :to="{ name: 'Portal' }">Portal</router-link>
   </div>
   <router-view />

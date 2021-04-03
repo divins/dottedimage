@@ -1,14 +1,22 @@
 <template>
   <canvas class="webgl"></canvas>
-  <a class="demo repo"
+  <a
+    class="demo repo"
     :title="links.repo.title"
     :href="links.repo.href"
-    target="_blank">
+    target="_blank"
+  >
     {{ links.repo.label }}
   </a>
   <p class="disclaimer">
-    This demo has been created following a <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{ links.brunos.label }}</a> tutorial. 
-    Give it a <a :href="links.tutorial.href" :title="links.tutorial.title" target="_blank">try</a>!
+    This demo has been created following a
+    <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{
+      links.brunos.label
+    }}</a>
+    tutorial. Give it a
+    <a :href="links.tutorial.href" :title="links.tutorial.title" target="_blank"
+      >try</a
+    >!
   </p>
 </template>
 
@@ -17,13 +25,13 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
-import galaxyShaderVertexXZ from '../shaders/galaxy/vertexXZ.glsl';
-import galaxyShaderVertexXY from '../shaders/galaxy/vertexXY.glsl';
-import galaxyShaderVertexYZ from '../shaders/galaxy/vertexYZ.glsl';
-import galaxyShaderVertexXZNoDistance from '../shaders/galaxy/vertexXZNoDistance.glsl';
-import galaxyShaderVertexXYNoDistance from '../shaders/galaxy/vertexXYNoDistance.glsl';
-import galaxyShaderVertexYZNoDistance from '../shaders/galaxy/vertexYZNoDistance.glsl';
-import galaxyShaderFragment from '../shaders/galaxy/fragment.glsl';
+import galaxyShaderVertexXZ from "../shaders/galaxy/vertexXZ.glsl";
+import galaxyShaderVertexXY from "../shaders/galaxy/vertexXY.glsl";
+import galaxyShaderVertexYZ from "../shaders/galaxy/vertexYZ.glsl";
+import galaxyShaderVertexXZNoDistance from "../shaders/galaxy/vertexXZNoDistance.glsl";
+import galaxyShaderVertexXYNoDistance from "../shaders/galaxy/vertexXYNoDistance.glsl";
+import galaxyShaderVertexYZNoDistance from "../shaders/galaxy/vertexYZNoDistance.glsl";
+import galaxyShaderFragment from "../shaders/galaxy/fragment.glsl";
 
 let scene = null;
 let camera = null;
@@ -70,7 +78,8 @@ export default {
         repo: {
           title: "View source code for Galaxy",
           label: "< >",
-          href: "https://github.com/divins/dottedimage/blob/master/src/components/Galaxy.vue"
+          href:
+            "https://github.com/divins/dottedimage/blob/master/src/components/Galaxy.vue"
         },
         tutorial: {
           title: "See followed tutorial",
@@ -113,10 +122,12 @@ export default {
   },
   methods: {
     randomPosition(radius) {
-      return Math.pow(Math.random(), this.parameters.randomnessPower) *
+      return (
+        Math.pow(Math.random(), this.parameters.randomnessPower) *
         (Math.random() < 0.5 ? 1 : -1) *
         this.parameters.randomness *
-        radius;
+        radius
+      );
     },
     generateGalaxy: function() {
       if (points !== null) {
@@ -145,7 +156,10 @@ export default {
         // Position
         const radius = Math.random() * this.parameters.radius;
 
-        const branchAngle = (i % this.parameters.branches) / this.parameters.branches * Math.PI * 2;
+        const branchAngle =
+          ((i % this.parameters.branches) / this.parameters.branches) *
+          Math.PI *
+          2;
 
         // Randomness
         const randomX = this.randomPosition(radius);
@@ -172,10 +186,16 @@ export default {
         scale[i] = Math.random() + 0.3;
       }
 
-      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
       geometry.setAttribute("aScale", new THREE.BufferAttribute(scale, 1));
-      geometry.setAttribute("aRandomness", new THREE.BufferAttribute(randomness, 3));
+      geometry.setAttribute(
+        "aRandomness",
+        new THREE.BufferAttribute(randomness, 3)
+      );
 
       /**
        * Material
@@ -187,7 +207,9 @@ export default {
         vertexShader: this.parameters.selectedVertex,
         fragmentShader: galaxyShaderFragment,
         uniforms: {
-          uSize: { value: this.parameters.particleSize * renderer.getPixelRatio() },
+          uSize: {
+            value: this.parameters.particleSize * renderer.getPixelRatio()
+          },
           uTime: { value: 0.0 },
           uSpinVelocity: { value: this.parameters.spinVelocity }
         }
@@ -204,40 +226,67 @@ export default {
       this.elements.gui = new dat.GUI();
       // Particles params
       const particlesFolder = this.elements.gui.addFolder("Particles");
-      particlesFolder.add(this.parameters, "particleCount")
-        .min(100).max(1000000).step(100)
+      particlesFolder
+        .add(this.parameters, "particleCount")
+        .min(100)
+        .max(1000000)
+        .step(100)
         .onFinishChange(this.generateGalaxy);
-      particlesFolder.add(this.parameters, "particleSize")
-        .min(1).max(50).step(1)
+      particlesFolder
+        .add(this.parameters, "particleSize")
+        .min(1)
+        .max(50)
+        .step(1)
         .onFinishChange(this.generateGalaxy);
       // Galaxy params
       const galaxyFolder = this.elements.gui.addFolder("Galaxy");
-      galaxyFolder.add(this.parameters, "affectedAxes", ["XZ", "XY", "YZ"])
+      galaxyFolder
+        .add(this.parameters, "affectedAxes", ["XZ", "XY", "YZ"])
         .onFinishChange(this.updateSelectedVertex);
-      galaxyFolder.add(this.parameters, "distanceHasImpact")
+      galaxyFolder
+        .add(this.parameters, "distanceHasImpact")
         .onFinishChange(this.updateSelectedVertex);
-      galaxyFolder.add(this.parameters, "spinVelocity")
-        .min(0.01).max(1).step(0.01)
+      galaxyFolder
+        .add(this.parameters, "spinVelocity")
+        .min(0.01)
+        .max(1)
+        .step(0.01)
         .onFinishChange(this.generateGalaxy);
-      galaxyFolder.add(this.parameters, "radius")
-        .min(0.01).max(20).step(0.01)
+      galaxyFolder
+        .add(this.parameters, "radius")
+        .min(0.01)
+        .max(20)
+        .step(0.01)
         .onFinishChange(this.generateGalaxy);
-      galaxyFolder.add(this.parameters, "branches")
-        .min(2).max(20).step(1)
+      galaxyFolder
+        .add(this.parameters, "branches")
+        .min(2)
+        .max(20)
+        .step(1)
         .onFinishChange(this.generateGalaxy);
-      galaxyFolder.add(this.parameters, "randomness")
-        .min(0).max(2).step(0.001)
+      galaxyFolder
+        .add(this.parameters, "randomness")
+        .min(0)
+        .max(2)
+        .step(0.001)
         .onFinishChange(this.generateGalaxy);
-      galaxyFolder.add(this.parameters, "randomnessPower")
-        .min(1).max(10).step(0.001)
+      galaxyFolder
+        .add(this.parameters, "randomnessPower")
+        .min(1)
+        .max(10)
+        .step(0.001)
         .listen(this.parameters, "randomnessPower")
         .onFinishChange(this.generateGalaxy);
-      galaxyFolder.addColor(this.parameters, "insideColor")
+      galaxyFolder
+        .addColor(this.parameters, "insideColor")
         .onFinishChange(this.generateGalaxy);
-      galaxyFolder.addColor(this.parameters, "outsideColor")
+      galaxyFolder
+        .addColor(this.parameters, "outsideColor")
         .onFinishChange(this.generateGalaxy);
       // Actions
-      this.elements.pauseButton = this.elements.gui.add(this, "pause").name("Pause");
+      this.elements.pauseButton = this.elements.gui
+        .add(this, "pause")
+        .name("Pause");
       this.elements.gui.add(this, "reset").name("Reset animation");
     },
     pause: function() {
@@ -318,15 +367,18 @@ export default {
     },
     updateSelectedVertex: function() {
       if (this.parameters.affectedAxes === "XZ") {
-        this.parameters.selectedVertex = this.parameters.distanceHasImpact ?
-          galaxyShaderVertexXZ : galaxyShaderVertexXZNoDistance;
+        this.parameters.selectedVertex = this.parameters.distanceHasImpact
+          ? galaxyShaderVertexXZ
+          : galaxyShaderVertexXZNoDistance;
       } else if (this.parameters.affectedAxes === "XY") {
-        this.parameters.selectedVertex = this.parameters.distanceHasImpact ?
-          galaxyShaderVertexXY : galaxyShaderVertexXYNoDistance;
+        this.parameters.selectedVertex = this.parameters.distanceHasImpact
+          ? galaxyShaderVertexXY
+          : galaxyShaderVertexXYNoDistance;
         this.parameters.randomnessPower = 5.0;
       } else if (this.parameters.affectedAxes === "YZ") {
-        this.parameters.selectedVertex = this.parameters.distanceHasImpact ?
-          galaxyShaderVertexYZ : galaxyShaderVertexYZNoDistance;
+        this.parameters.selectedVertex = this.parameters.distanceHasImpact
+          ? galaxyShaderVertexYZ
+          : galaxyShaderVertexYZNoDistance;
         this.parameters.randomnessPower = 5.0;
       }
       this.generateGalaxy();

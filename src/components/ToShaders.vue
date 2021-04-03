@@ -19,10 +19,12 @@
       <canvas class="webgl"></canvas>
     </div>
   </div>
-  <a class="demo repo"
+  <a
+    class="demo repo"
     :title="links.repo.title"
     :href="links.repo.href"
-    target="_blank">
+    target="_blank"
+  >
     {{ links.repo.label }}
   </a>
 </template>
@@ -32,8 +34,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
-import dotsShaderVertex from '../shaders/dots/vertex.glsl';
-import dotsShaderFragment from '../shaders/dots/fragment.glsl';
+import dotsShaderVertex from "../shaders/dots/vertex.glsl";
+import dotsShaderFragment from "../shaders/dots/fragment.glsl";
 
 let scene = null;
 let camera = null;
@@ -58,7 +60,8 @@ export default {
         repo: {
           title: "View source code for shaders animation",
           label: "< >",
-          href: "https://github.com/divins/dottedimage/blob/master/src/components/ToShaders.vue"
+          href:
+            "https://github.com/divins/dottedimage/blob/master/src/components/ToShaders.vue"
         }
       },
       gridOptions: {
@@ -75,7 +78,7 @@ export default {
       gridInfo: {
         cols: null,
         rows: null,
-        artifactsCount: null,
+        artifactsCount: null
       },
       elements: {
         gui: null,
@@ -109,8 +112,12 @@ export default {
       canvas.height = this.imageSize.height;
       ctx.drawImage(output, 0, 0, canvas.width, canvas.height);
 
-      this.gridInfo.cols = Math.round(this.imageSize.width / this.gridOptions.spacingX);
-      this.gridInfo.rows = Math.round(this.imageSize.height / this.gridOptions.spacingY);
+      this.gridInfo.cols = Math.round(
+        this.imageSize.width / this.gridOptions.spacingX
+      );
+      this.gridInfo.rows = Math.round(
+        this.imageSize.height / this.gridOptions.spacingY
+      );
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
 
       this.setCanvas();
@@ -140,13 +147,16 @@ export default {
           positions[i3 + 1] = (output.height - posY) * this.positionMultiplier;
           positions[i3 + 2] = Math.random() * 0.5;
 
-          scale[(i * this.gridInfo.rows + z)] = Math.random() + 1.0;
+          scale[i * this.gridInfo.rows + z] = Math.random() + 1.0;
         }
       }
 
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      geometry.setAttribute('aScale', new THREE.BufferAttribute(scale, 1));
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute("aScale", new THREE.BufferAttribute(scale, 1));
 
       /**
        * Material
@@ -158,7 +168,9 @@ export default {
         vertexShader: dotsShaderVertex,
         fragmentShader: dotsShaderFragment,
         uniforms: {
-          uSize: { value: this.gridOptions.particleSize * renderer.getPixelRatio() },
+          uSize: {
+            value: this.gridOptions.particleSize * renderer.getPixelRatio()
+          },
           uZDisplacement: { value: this.animation.zDisplacement },
           uTime: { value: 0.0 }
         }
@@ -188,23 +200,32 @@ export default {
     },
     setGuiControls: function() {
       this.gui = new dat.GUI();
-      this.gui.add(this.gridOptions, "spacingX")
-        .min(5).max(50).step(5)
+      this.gui
+        .add(this.gridOptions, "spacingX")
+        .min(5)
+        .max(50)
+        .step(5)
         .name("X Space")
         .onFinishChange(this.reprocess());
       this.gui
         .add(this.gridOptions, "spacingY")
-        .min(5).max(50).step(5)
+        .min(5)
+        .max(50)
+        .step(5)
         .name("Y Space")
         .onFinishChange(this.reprocess());
       this.gui
         .add(this.gridOptions, "particleSize")
-        .min(1).max(50).step(1)
+        .min(1)
+        .max(50)
+        .step(1)
         .name("Particle size")
         .onFinishChange(this.reprocess());
       this.gui
         .add(this.animation, "zDisplacement")
-        .min(0).max(5).step(0.1)
+        .min(0)
+        .max(5)
+        .step(0.1)
         .name("Z Displacement")
         .onFinishChange(this.reprocess());
       this.gui.add(this.animation, "animate");
@@ -237,7 +258,8 @@ export default {
 
       camera = new THREE.PerspectiveCamera(
         70,
-        this.elements.webglCanvas.clientWidth / this.elements.webglCanvas.clientHeight,
+        this.elements.webglCanvas.clientWidth /
+          this.elements.webglCanvas.clientHeight,
         0.1,
         100
       );
@@ -336,7 +358,7 @@ canvas.webgl {
   position: absolute;
   top: 0px;
   left: 0px;
-    width: 0px;
+  width: 0px;
   height: 0px;
 }
 img#output_image {

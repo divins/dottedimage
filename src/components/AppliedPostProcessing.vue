@@ -2,46 +2,60 @@
   <canvas class="webgl"></canvas>
   <div class="loading-bar"></div>
   <div class="point point-0">
-        <div class="label">1</div>
-        <div class="description">Front and top screen with HUD aggregating terrain and battle informations.</div>
+    <div class="label">1</div>
+    <div class="description">
+      Front and top screen with HUD aggregating terrain and battle informations.
     </div>
-    <div class="point point-1">
-        <div class="label">2</div>
-        <div class="description">Ventilation with air purifier and detection of environment toxicity.</div>
+  </div>
+  <div class="point point-1">
+    <div class="label">2</div>
+    <div class="description">
+      Ventilation with air purifier and detection of environment toxicity.
     </div>
-    <div class="point point-2">
-        <div class="label">3</div>
-        <div class="description">Cameras supporting night vision and heat vision with automatic adjustment.</div>
+  </div>
+  <div class="point point-2">
+    <div class="label">3</div>
+    <div class="description">
+      Cameras supporting night vision and heat vision with automatic adjustment.
     </div>
-  <a class="demo repo"
+  </div>
+  <a
+    class="demo repo"
     :title="links.repo.title"
     :href="links.repo.href"
-    target="_blank">
+    target="_blank"
+  >
     {{ links.repo.label }}
   </a>
   <p class="disclaimer">
-    This demo has been created following a <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{ links.brunos.label }}</a> tutorial. 
-    Give it a <a :href="links.tutorial.href" :title="links.tutorial.title" target="_blank">try</a>!
+    This demo has been created following a
+    <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{
+      links.brunos.label
+    }}</a>
+    tutorial. Give it a
+    <a :href="links.tutorial.href" :title="links.tutorial.title" target="_blank"
+      >try</a
+    >!
   </p>
 </template>
 
 <script>
 import * as THREE from "three";
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { gsap } from "gsap";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { Raycaster } from "three";
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass.js';
-import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
-import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { PixelShader } from 'three/examples/jsm/shaders/PixelShader.js';
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { DotScreenPass } from "three/examples/jsm/postprocessing/DotScreenPass.js";
+import { GlitchPass } from "three/examples/jsm/postprocessing/GlitchPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { RGBShiftShader } from "three/examples/jsm/shaders/RGBShiftShader.js";
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { PixelShader } from "three/examples/jsm/shaders/PixelShader.js";
 
 const clock = new THREE.Clock();
 let scene = null;
@@ -99,7 +113,8 @@ export default {
         repo: {
           title: "View source code for Post Processing",
           label: "< >",
-          href: "https://github.com/divins/dottedimage/blob/master/src/components/AppliedPostProcessing.vue"
+          href:
+            "https://github.com/divins/dottedimage/blob/master/src/components/AppliedPostProcessing.vue"
         },
         tutorial: {
           title: "See followed tutorial",
@@ -133,16 +148,18 @@ export default {
   },
   methods: {
     updateAllMaterials: () => {
-      scene.traverse( (child) =>
-      {
-        if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+      scene.traverse(child => {
+        if (
+          child instanceof THREE.Mesh &&
+          child.material instanceof THREE.MeshStandardMaterial
+        ) {
           // child.material.envMap = environmentMap
           child.material.envMapIntensity = debugObject.envMapIntensity;
           child.material.needsUpdate = true;
           child.castShadow = true;
           child.receiveShadow = true;
         }
-      })
+      });
     },
     initScene: function() {
       this.elements.loadingBarElement = document.querySelector(".loading-bar");
@@ -163,22 +180,21 @@ export default {
               500
           ); */
           // With GSAP
-          gsap.delayedCall(
-            0.5,
-            () => {
-              gsap.to(
-                this.elements.overlay.mat.uniforms.uOpacity,
-                { duration: 3.0, delay: 1.0, value: 0.0 }
-              );
-              this.elements.loadingBarElement.classList.add("ended");
-              this.elements.loadingBarElement.style.transform = "";
-              this.sceneInfo.ready = true;
-            }
-          );
+          gsap.delayedCall(0.5, () => {
+            gsap.to(this.elements.overlay.mat.uniforms.uOpacity, {
+              duration: 3.0,
+              delay: 1.0,
+              value: 0.0
+            });
+            this.elements.loadingBarElement.classList.add("ended");
+            this.elements.loadingBarElement.style.transform = "";
+            this.sceneInfo.ready = true;
+          });
         },
         (itemUrl, itemsLoaded, itemsTotal) => {
           //const progressRatio = itemsLoaded / itemsTotal;
-          this.elements.loadingBarElement.style.transform = `scaleX(${itemsLoaded / itemsTotal})`;
+          this.elements.loadingBarElement.style.transform = `scaleX(${itemsLoaded /
+            itemsTotal})`;
         },
         () => {
           console.log("error");
@@ -195,7 +211,7 @@ export default {
       this.elements.overlay.mat = new THREE.ShaderMaterial({
         transparent: true,
         uniforms: {
-            uOpacity: { value: 1.0 }
+          uOpacity: { value: 1.0 }
         },
         vertexShader: `
         void main(){
@@ -216,7 +232,10 @@ export default {
         `
       });
 
-      const overlay = new THREE.Mesh(this.elements.overlay.geo, this.elements.overlay.mat);
+      const overlay = new THREE.Mesh(
+        this.elements.overlay.geo,
+        this.elements.overlay.mat
+      );
       scene.add(overlay);
 
       /**
@@ -242,8 +261,8 @@ export default {
        * Models
        */
       gltfLoader.load(
-         "/assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf",
-        (gltf) => {
+        "/assets/models/DamagedHelmet/glTF/DamagedHelmet.gltf",
+        gltf => {
           //gltf.scene.scale.set(10, 10, 10);
           //gltf.scene.position.set(0, -4, 0);
           gltf.scene.scale.set(2, 2, 2);
@@ -257,12 +276,12 @@ export default {
       /**
        * Lights
        */
-      const directionalLight = new THREE.DirectionalLight('#ffffff', 3);
+      const directionalLight = new THREE.DirectionalLight("#ffffff", 3);
       directionalLight.castShadow = true;
       directionalLight.shadow.camera.far = 15;
       directionalLight.shadow.mapSize.set(1024, 1024);
       directionalLight.shadow.normalBias = 0.05;
-      directionalLight.position.set(0.25, 3, - 2.25);
+      directionalLight.position.set(0.25, 3, -2.25);
       scene.add(directionalLight);
 
       /**
@@ -278,18 +297,18 @@ export default {
       dotScreenPass = new DotScreenPass();
       dotScreenPass.enabled = false;
       effectComposer.addPass(dotScreenPass);
-      this.elements.gui.add(dotScreenPass, 'enabled').name('Dotted Screen')
+      this.elements.gui.add(dotScreenPass, "enabled").name("Dotted Screen");
 
       const glitchPass = new GlitchPass();
       //glitchPass.goWild = true;
       glitchPass.enabled = false;
       effectComposer.addPass(glitchPass);
-      this.elements.gui.add(glitchPass, 'enabled').name('Glitch');
+      this.elements.gui.add(glitchPass, "enabled").name("Glitch");
 
       const rgbShiftPass = new ShaderPass(RGBShiftShader);
       rgbShiftPass.enabled = false;
       effectComposer.addPass(rgbShiftPass);
-      this.elements.gui.add(rgbShiftPass, 'enabled').name('RGB Shift');
+      this.elements.gui.add(rgbShiftPass, "enabled").name("RGB Shift");
 
       const unrealBloomPass = new UnrealBloomPass();
       unrealBloomPass.enabled = false;
@@ -298,10 +317,22 @@ export default {
       unrealBloomPass.radius = 1;
       unrealBloomPass.threshold = 0.6;
       const unrealBloomFolder = this.elements.gui.addFolder("Unreal Bloom");
-      unrealBloomFolder.add(unrealBloomPass, 'enabled').name('Unreal Bloom');
-      unrealBloomFolder.add(unrealBloomPass, 'strength').min(0).max(2).step(0.001);
-      unrealBloomFolder.add(unrealBloomPass, 'radius').min(0).max(2).step(0.001);
-      unrealBloomFolder.add(unrealBloomPass, 'threshold').min(0).max(1).step(0.001);
+      unrealBloomFolder.add(unrealBloomPass, "enabled").name("Unreal Bloom");
+      unrealBloomFolder
+        .add(unrealBloomPass, "strength")
+        .min(0)
+        .max(2)
+        .step(0.001);
+      unrealBloomFolder
+        .add(unrealBloomPass, "radius")
+        .min(0)
+        .max(2)
+        .step(0.001);
+      unrealBloomFolder
+        .add(unrealBloomPass, "threshold")
+        .min(0)
+        .max(1)
+        .step(0.001);
 
       // Tint pass
       const TintShader = {
@@ -336,16 +367,25 @@ export default {
       effectComposer.addPass(tintPass);
 
       const tintFolder = this.elements.gui.addFolder("Tint");
-      tintFolder.add(tintPass, 'enabled').name('Tint Change');
-      tintFolder.add(tintPass.material.uniforms.uTint.value, 'x')
-        .min(- 1).max(1).step(0.001)
-        .name('red');
-      tintFolder.add(tintPass.material.uniforms.uTint.value, 'y')
-        .min(- 1).max(1).step(0.001)
-        .name('green');
-      tintFolder.add(tintPass.material.uniforms.uTint.value, 'z')
-        .min(- 1).max(1).step(0.001)
-        .name('blue');
+      tintFolder.add(tintPass, "enabled").name("Tint Change");
+      tintFolder
+        .add(tintPass.material.uniforms.uTint.value, "x")
+        .min(-1)
+        .max(1)
+        .step(0.001)
+        .name("red");
+      tintFolder
+        .add(tintPass.material.uniforms.uTint.value, "y")
+        .min(-1)
+        .max(1)
+        .step(0.001)
+        .name("green");
+      tintFolder
+        .add(tintPass.material.uniforms.uTint.value, "z")
+        .min(-1)
+        .max(1)
+        .step(0.001)
+        .name("blue");
 
       // Displacement pass
       const DisplacementShader = {
@@ -379,7 +419,7 @@ export default {
       const displacementPass = new ShaderPass(DisplacementShader);
       displacementPass.enabled = false;
       effectComposer.addPass(displacementPass);
-      this.elements.gui.add(displacementPass, 'enabled').name('Displacement');
+      this.elements.gui.add(displacementPass, "enabled").name("Displacement");
 
       // Futuristic pass
       const FuturisticShader = {
@@ -417,35 +457,45 @@ export default {
       };
       const futuristicPass = new ShaderPass(FuturisticShader);
       futuristicPass.enabled = false;
-      futuristicPass.material.uniforms.uNormalMap.value = textureLoader.load(require("@/assets/textures/interfaceNormalMap.png"));
+      futuristicPass.material.uniforms.uNormalMap.value = textureLoader.load(
+        require("@/assets/textures/interfaceNormalMap.png")
+      );
       effectComposer.addPass(futuristicPass);
-      this.elements.gui.add(futuristicPass, 'enabled').name('Futuristic Frame')
+      this.elements.gui.add(futuristicPass, "enabled").name("Futuristic Frame");
 
-      const pixelPass = new ShaderPass( PixelShader );
-      pixelPass.uniforms[ "resolution" ].value = new THREE.Vector2( window.innerWidth, window.innerHeight );
-      pixelPass.uniforms[ "resolution" ].value.multiplyScalar( window.devicePixelRatio );
+      const pixelPass = new ShaderPass(PixelShader);
+      pixelPass.uniforms["resolution"].value = new THREE.Vector2(
+        window.innerWidth,
+        window.innerHeight
+      );
+      pixelPass.uniforms["resolution"].value.multiplyScalar(
+        window.devicePixelRatio
+      );
       pixelPass.uniforms.pixelSize.value = 8;
       pixelPass.enabled = false;
-      effectComposer.addPass( pixelPass );
+      effectComposer.addPass(pixelPass);
 
       const pixelFolder = this.elements.gui.addFolder("Pixelator");
-      pixelFolder.add(pixelPass, 'enabled').name('pixelPass')
-      pixelFolder.add( pixelPass.uniforms.pixelSize, 'value' )
-        .min( 1 ).max( 32 ).step( 1 )
-        .name('pixelSize');
+      pixelFolder.add(pixelPass, "enabled").name("pixelPass");
+      pixelFolder
+        .add(pixelPass.uniforms.pixelSize, "value")
+        .min(1)
+        .max(32)
+        .step(1)
+        .name("pixelSize");
 
       // CRT pass
       const CRTShader = {
-          uniforms: {
-              tDiffuse: { value: null },
-              uCurvature: { value: new THREE.Vector2(3.5, 3.0) },
-              //screenResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },
-              screenResolution: { value: new THREE.Vector2(320, 240) },
-              scanLineOpacity: { value: new THREE.Vector2(0.5, 0.5) },
-              vignetteOpacity: { value: 0.5 },
-              brightness: { value: 2.1 }
-          },
-          vertexShader: `
+        uniforms: {
+          tDiffuse: { value: null },
+          uCurvature: { value: new THREE.Vector2(3.5, 3.0) },
+          //screenResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },
+          screenResolution: { value: new THREE.Vector2(320, 240) },
+          scanLineOpacity: { value: new THREE.Vector2(0.5, 0.5) },
+          vignetteOpacity: { value: 0.5 },
+          brightness: { value: 2.1 }
+        },
+        vertexShader: `
               varying vec2 vUv;
               void main()
               {
@@ -453,7 +503,7 @@ export default {
                   vUv = uv;
               }
           `,
-          fragmentShader: `
+        fragmentShader: `
               #define PI 3.1415926535897932384626433832795
               uniform sampler2D tDiffuse;
               uniform vec2 uCurvature;
@@ -504,25 +554,43 @@ export default {
       effectComposer.addPass(crtPass);
 
       const crtFolder = this.elements.gui.addFolder("Old TV (CRT)");
-      crtFolder.add(crtPass, 'enabled').name('crtPass');
-      crtFolder.add(crtPass.material.uniforms.uCurvature.value, 'x')
-        .min(-1).max(10).step(0.1)
-        .name('CurvatureX');
-      crtFolder.add(crtPass.material.uniforms.uCurvature.value, 'y')
-        .min(-1).max(10).step(0.1)
-        .name('CurvatureY');
-      crtFolder.add(crtPass.material.uniforms.scanLineOpacity.value, 'x')
-        .min(-1).max(10).step(0.1)
-        .name('scanLineOpacityX');
-      crtFolder.add(crtPass.material.uniforms.scanLineOpacity.value, 'y')
-        .min(-1).max(10).step(0.1)
-        .name('scanLineOpacityY');
-      crtFolder.add(crtPass.material.uniforms.vignetteOpacity, 'value')
-        .min(-1).max(1).step(0.01)
-        .name('vignetteOpacity');
-      crtFolder.add(crtPass.material.uniforms.brightness, 'value')
-        .min(-1).max(5).step(0.01)
-        .name('brightness');
+      crtFolder.add(crtPass, "enabled").name("crtPass");
+      crtFolder
+        .add(crtPass.material.uniforms.uCurvature.value, "x")
+        .min(-1)
+        .max(10)
+        .step(0.1)
+        .name("CurvatureX");
+      crtFolder
+        .add(crtPass.material.uniforms.uCurvature.value, "y")
+        .min(-1)
+        .max(10)
+        .step(0.1)
+        .name("CurvatureY");
+      crtFolder
+        .add(crtPass.material.uniforms.scanLineOpacity.value, "x")
+        .min(-1)
+        .max(10)
+        .step(0.1)
+        .name("scanLineOpacityX");
+      crtFolder
+        .add(crtPass.material.uniforms.scanLineOpacity.value, "y")
+        .min(-1)
+        .max(10)
+        .step(0.1)
+        .name("scanLineOpacityY");
+      crtFolder
+        .add(crtPass.material.uniforms.vignetteOpacity, "value")
+        .min(-1)
+        .max(1)
+        .step(0.01)
+        .name("vignetteOpacity");
+      crtFolder
+        .add(crtPass.material.uniforms.brightness, "value")
+        .min(-1)
+        .max(5)
+        .step(0.01)
+        .name("brightness");
 
       // Remember that passes have an order, we want to apply antialsing the last
       if (renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2) {
@@ -539,7 +607,12 @@ export default {
       scene = new THREE.Scene();
 
       // Base camera
-      camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
+      camera = new THREE.PerspectiveCamera(
+        75,
+        sizes.width / sizes.height,
+        0.1,
+        100
+      );
       camera.position.set(4, 1, -4);
       scene.add(camera);
 
@@ -547,7 +620,7 @@ export default {
       controls = new OrbitControls(camera, this.elements.webglCanvas);
       controls.enableDamping = true;
 
-      /** 
+      /**
        * Points
        */
       this.points.push({
@@ -591,27 +664,20 @@ export default {
       // Render target
       let RenderTargetClass = null;
 
-      if(renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2)
-      {
-        RenderTargetClass = THREE.WebGLMultisampleRenderTarget
-        console.log('Using WebGLMultisampleRenderTarget')
-      }
-      else
-      {
-        RenderTargetClass = THREE.WebGLRenderTarget
-        console.log('Using WebGLRenderTarget')
+      if (renderer.getPixelRatio() === 1 && renderer.capabilities.isWebGL2) {
+        RenderTargetClass = THREE.WebGLMultisampleRenderTarget;
+        console.log("Using WebGLMultisampleRenderTarget");
+      } else {
+        RenderTargetClass = THREE.WebGLRenderTarget;
+        console.log("Using WebGLRenderTarget");
       }
 
-      const renderTarget = new RenderTargetClass(
-        800,
-        600,
-        {
-          minFilter: THREE.LinearFilter,
-          magFilter: THREE.LinearFilter,
-          format: THREE.RGBAFormat,
-          encoding: THREE.sRGBEncoding
-        }
-      );
+      const renderTarget = new RenderTargetClass(800, 600, {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        format: THREE.RGBAFormat,
+        encoding: THREE.sRGBEncoding
+      });
       // Composer
       effectComposer = new EffectComposer(renderer, renderTarget);
     },
@@ -627,7 +693,7 @@ export default {
         for (const point of this.points) {
           const screenPosition = point.position.clone();
           screenPosition.project(camera);
-  
+
           raycaster.setFromCamera(screenPosition, camera);
           const intersects = raycaster.intersectObjects(scene.children, true); // true for recursive
           intersects;
@@ -642,11 +708,11 @@ export default {
               point.element.classList.add("visible");
             }
           }
-  
+
           //console.log(screenPosition)
           const translateX = screenPosition.x * sizes.width * 0.5;
           const translateY = -screenPosition.y * sizes.height * 0.5;
-  
+
           //point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
           point.element.style.transform = `translate(${translateX}px, ${translateY}px)`;
         }
@@ -698,72 +764,72 @@ p.disclaimer {
   color: #eee;
 }
 .loading-bar {
-    position: absolute;
-    top: 50%;
-    width: 100%;
-    height: 2px;
-    background-color: white;
-    transform: scaleX(0);
-    transform-origin: top left;
-    transition: transform 0.5s;
-    will-change: transform;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background-color: white;
+  transform: scaleX(0);
+  transform-origin: top left;
+  transition: transform 0.5s;
+  will-change: transform;
 }
 
 .loading-bar.ended {
-    transform: scaleX(0);
-    transform-origin: top right;
-    transition: transform 1.5s ease-in-out;
+  transform: scaleX(0);
+  transform-origin: top right;
+  transition: transform 1.5s ease-in-out;
 }
 
 .point {
-    position: absolute;
-    top: 50%;
-    left: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
 }
 
 .point:hover .description {
-    opacity: 1;
+  opacity: 1;
 }
 
 .point.visible .label {
-    transform: scale(1, 1);
+  transform: scale(1, 1);
 }
 
 .point .label {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    top: -20px;
-    left: -20px;
-    border-radius: 50%;
-    background: #00000077;
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    line-height: 40px;
-    font-weight: 100;
-    font-size: 14px;
-    cursor: help;
-    transform: scale(0, 0); /* Sometimes you need to put: 0.001 */
-    transition: transform 0.3s;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  left: -20px;
+  border-radius: 50%;
+  background: #00000077;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  line-height: 40px;
+  font-weight: 100;
+  font-size: 14px;
+  cursor: help;
+  transform: scale(0, 0); /* Sometimes you need to put: 0.001 */
+  transition: transform 0.3s;
 }
 
 .point .description {
-    position: absolute;
-    top: 30px;
-    left: -120px;
-    width: 200px;
-    padding: 20px;
-    border-radius: 4px;
-    background: #00000077;
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    line-height: 1.3em;
-    font-weight: 100;
-    font-size: 14px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
+  position: absolute;
+  top: 30px;
+  left: -120px;
+  width: 200px;
+  padding: 20px;
+  border-radius: 4px;
+  background: #00000077;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  line-height: 1.3em;
+  font-weight: 100;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
 }
 </style>

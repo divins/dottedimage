@@ -6,8 +6,8 @@
     </div>
     <div class="info">
       <p>
-        Take into account that this experiment is using particles<br>
-        but the animation is done through requestAnimationFrame<br>
+        Take into account that this experiment is using particles<br />
+        but the animation is done through requestAnimationFrame<br />
         this is not performant...
       </p>
       <ul class="grid-info">
@@ -20,10 +20,12 @@
       <img id="output_image" @load="process" />
       <canvas class="webgl"></canvas>
     </div>
-    <a class="demo repo"
+    <a
+      class="demo repo"
       :title="links.repo.title"
       :href="links.repo.href"
-      target="_blank">
+      target="_blank"
+    >
       {{ links.repo.label }}
     </a>
   </div>
@@ -65,7 +67,8 @@ export default {
         repo: {
           title: "View source code for particles",
           label: "< >",
-          href: "https://github.com/divins/dottedimage/blob/master/src/components/ToParticles.vue"
+          href:
+            "https://github.com/divins/dottedimage/blob/master/src/components/ToParticles.vue"
         }
       },
       gridOptions: {
@@ -138,12 +141,14 @@ export default {
       ctx.drawImage(output, 0, 0, output.width, output.height);
 
       this.gridInfo.cols = Math.round(output.width / this.gridOptions.spacingX);
-      this.gridInfo.rows = Math.round(output.height / this.gridOptions.spacingY);
+      this.gridInfo.rows = Math.round(
+        output.height / this.gridOptions.spacingY
+      );
       this.gridInfo.artifactsCount = this.gridInfo.cols * this.gridInfo.rows;
 
       /**
-        * Geometry
-        */
+       * Geometry
+       */
       geometry = new THREE.BufferGeometry();
 
       const positions = new Float32Array(this.gridInfo.artifactsCount * 3);
@@ -184,7 +189,7 @@ export default {
         vertexColors: true,
         alphaMap: particleCustomTexture,
         depthWrite: false,
-        transparent: true,
+        transparent: true
         //blending: THREE.AdditiveBlending
       });
 
@@ -290,9 +295,15 @@ export default {
           z;
 
           if (i3 % 2) {
-            geometry.attributes.position.array[i3 + 2] = Math.sin(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * this.animationOptions.zDisplacement;
+            geometry.attributes.position.array[i3 + 2] =
+              Math.sin(
+                elapsedTime + this.seedRand(undefined, undefined, i3 ^ 3)
+              ) * this.animationOptions.zDisplacement;
           } else {
-            geometry.attributes.position.array[i3 + 2] = Math.cos(elapsedTime + this.seedRand(undefined, undefined, i3^3)) * this.animationOptions.zDisplacement;
+            geometry.attributes.position.array[i3 + 2] =
+              Math.cos(
+                elapsedTime + this.seedRand(undefined, undefined, i3 ^ 3)
+              ) * this.animationOptions.zDisplacement;
           }
         }
         geometry.attributes.position.needsUpdate = true;
