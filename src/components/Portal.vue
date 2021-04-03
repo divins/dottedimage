@@ -1,5 +1,4 @@
 <template>
-    <h1>Fooo</h1>
     <canvas class="webgl"></canvas>
     <a class="demo repo"
         :title="links.repo.title"
@@ -14,10 +13,10 @@
 </template>
 
 <script>
-import ScatteringScene from "../scenes/ScatteringScene.js";
+import PortalScene from "../scenes/PortalScene.js";
 
 export default {
-    name: "Scattering",
+    name: "Portal",
     props: {
         msg: String
     },
@@ -27,7 +26,7 @@ export default {
             repo: {
             title: "View source code for Galaxy",
             label: "< >",
-            href: "https://github.com/divins/dottedimage/blob/master/src/components/Scattering.vue"
+            href: "https://github.com/divins/dottedimage/blob/master/src/components/Portal.vue"
             },
             tutorial: {
             title: "See followed tutorial",
@@ -48,11 +47,11 @@ export default {
         console.log("Created");
     },
     mounted() {
-        const scattering = new ScatteringScene({
+        const portal = new PortalScene({
             message: "so what"
         });
-        scattering.initialize();
-        scattering.startMagic();
+        portal.initialize();
+        portal.startMagic();
     },
     beforeUnmount() {
     }

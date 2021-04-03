@@ -29,10 +29,10 @@ const routes = [
       import(/* webpackChunkName: "about" */ "../views/PostProcessing.vue")
   },
   {
-    path: "/scattering",
-    name: "Scattering",
+    path: "/portal",
+    name: "Portal",
     component: () =>
-      import(/* webpackChunkName: "about" */ "../views/ScatteringView.vue")
+      import(/* webpackChunkName: "about" */ "../views/PortalView.vue")
   }
 ];
 

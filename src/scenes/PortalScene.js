@@ -10,7 +10,7 @@ import portalFragmentShader from '../shaders/portal/fragment.glsl'
 import lampVertexShader from '../shaders/lamps/vertex.glsl'
 import lampFragmentShader from '../shaders/lamps/fragment.glsl'
 
-export default class ScatteringScene {
+export default class PortalScene {
     constructor(options){
         this.message = options.message;
         console.log(this.message);
