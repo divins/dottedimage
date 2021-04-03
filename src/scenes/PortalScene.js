@@ -52,11 +52,19 @@ export default class PortalScene {
     /**
      * Initializers
      */
+     initialize() {
+        this.initializeScene();
+        this.initializeLoaders();
+        this.initializeCamera();
+        this.initializeTooling();
+        this.initializeRenderer();
+    }
+
     initializeScene() {
         this.scene = new THREE.Scene();
         this.canvas = document.querySelector('canvas.webgl')
 
-         this.threeOptions.sizes = {
+        this.threeOptions.sizes = {
             width: window.innerWidth,
             height: window.innerHeight
         }
@@ -107,6 +115,9 @@ export default class PortalScene {
             .onChange(() => { this.renderer.setClearColor(this.threeOptions.clearColor) })
     }
 
+    /**
+     * It's a wrap!
+     */
     cleanUp(){
         this.threeObjects.geos.forEach( (geo) => {
             geo.dispose();
@@ -124,6 +135,9 @@ export default class PortalScene {
         cancelAnimationFrame(this.requestAnimationFrameId);        
     }
 
+    /**
+     * Update
+     */
     tick() {
         const elapsedTime = this.clock.getElapsedTime()
 
@@ -143,13 +157,9 @@ export default class PortalScene {
         this.requestAnimationFrameId = window.requestAnimationFrame(this.tick.bind(this));
     }
 
-    initialize() {
-        this.initializeScene();
-        this.initializeLoaders();
-        this.initializeCamera();
-        this.initializeTooling();
-        this.initializeRenderer();
-    }
+    /**
+     * Time to make things happen
+     */
 
     startMagic() {
         console.log('Let de magic happen!')
@@ -166,16 +176,10 @@ export default class PortalScene {
     }
 
     prepareSceneMaterials() {
-        /**
-        * Textures
-        */
         const bakedTexture = this.textureLoader.load(require("@/assets/textures/portalBaked.jpg"))
         bakedTexture.flipY = false
         bakedTexture.encoding = THREE.sRGBEncoding
 
-        /**
-         * Materials
-         */
         // Baked material
         this.bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture })
         this.threeObjects.mats.push(this.bakedMaterial);
@@ -277,10 +281,7 @@ export default class PortalScene {
         }
         firefliesGeo.setAttribute('position', new THREE.BufferAttribute(firefliesPositions, 3))
         firefliesGeo.setAttribute('aScale', new THREE.BufferAttribute(firefliesScales, 1))
-        /* const firefliesMat = new THREE.PointsMaterial({
-            size: 0.1,
-            sizeAttenuation: true
-        }) */
+        
         this.firefliesMat = new THREE.ShaderMaterial({
             vertexShader: firefliesVertexShader,
             fragmentShader: firefliesFragmentShader,
