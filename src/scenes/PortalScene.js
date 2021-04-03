@@ -2,6 +2,7 @@ import * as dat from 'dat.gui'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import Stats from "three/examples/jsm/libs/stats.module.js";
 
 import firefliesVertexShader from '../shaders/fireflies/vertex.glsl'
 import firefliesFragmentShader from '../shaders/fireflies/fragment.glsl'
@@ -68,12 +69,18 @@ export default class PortalScene {
         this.gltfLoader = new GLTFLoader()
     }
 
-    initializeControls() {
+    initializeTooling() {
         this.gui = new dat.GUI({
             width: 400
         });
         this.controls = new OrbitControls(this.camera, this.canvas)
         this.controls.enableDamping = true
+
+        this.stats = new Stats();
+        let container = document.createElement("div");
+        container.setAttribute("id", "stats");
+        document.body.appendChild(container);
+        container.appendChild(this.stats.dom);
     }
 
     initializeCamera() {
@@ -100,6 +107,23 @@ export default class PortalScene {
             .onChange(() => { this.renderer.setClearColor(this.threeOptions.clearColor) })
     }
 
+    cleanUp(){
+        this.threeObjects.geos.forEach( (geo) => {
+            geo.dispose();
+        })
+        this.threeObjects.mats.forEach( (mat) => {
+            mat.dispose();
+        })
+        this.threeObjects.meshes.forEach( (mesh) => {
+            this.scene.remove(mesh);
+        })
+
+        this.gui.destroy();
+        var statsElement = document.getElementById("stats");
+        statsElement.parentNode.removeChild(statsElement);
+        cancelAnimationFrame(this.requestAnimationFrameId);        
+    }
+
     tick() {
         const elapsedTime = this.clock.getElapsedTime()
 
@@ -108,21 +132,22 @@ export default class PortalScene {
         this.portalLightMaterial.uniforms.uTime.value = elapsedTime;
         this.poleLightMaterial.uniforms.uTime.value = elapsedTime;
         
-        // Update controls
+        // Update tools
+        this.stats.update();
         this.controls.update()
     
         // Render
         this.renderer.render(this.scene, this.camera)
     
         // Call tick again on the next frame
-        window.requestAnimationFrame(this.tick.bind(this))
+        this.requestAnimationFrameId = window.requestAnimationFrame(this.tick.bind(this));
     }
 
     initialize() {
         this.initializeScene();
         this.initializeLoaders();
         this.initializeCamera();
-        this.initializeControls();
+        this.initializeTooling();
         this.initializeRenderer();
     }
 

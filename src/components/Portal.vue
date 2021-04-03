@@ -15,6 +15,8 @@
 <script>
 import PortalScene from "../scenes/PortalScene.js";
 
+const portal = new PortalScene({});
+
 export default {
     name: "Portal",
     props: {
@@ -22,23 +24,23 @@ export default {
     },
     data() {
         return {
-        links: {
-            repo: {
-            title: "View source code for Galaxy",
-            label: "< >",
-            href: "https://github.com/divins/dottedimage/blob/master/src/components/Portal.vue"
-            },
-            tutorial: {
-            title: "See followed tutorial",
-            label: "¿?",
-            href: "https://threejs-journey.xyz"
-            },
-            brunos: {
-            title: "Bruno Simon website",
-            label: "Bruno Simon",
-            href: "https://bruno-simon.com/"
+            links: {
+                repo: {
+                title: "View source code for Galaxy",
+                label: "< >",
+                href: "https://github.com/divins/dottedimage/blob/master/src/components/Portal.vue"
+                },
+                tutorial: {
+                title: "See followed tutorial",
+                label: "¿?",
+                href: "https://threejs-journey.xyz"
+                },
+                brunos: {
+                title: "Bruno Simon website",
+                label: "Bruno Simon",
+                href: "https://bruno-simon.com/"
+                }
             }
-        }
         };
     },
     methods: {
@@ -46,14 +48,12 @@ export default {
     created() {
         console.log("Created");
     },
-    mounted() {
-        const portal = new PortalScene({
-            message: "so what"
-        });
+    mounted() {    
         portal.initialize();
         portal.startMagic();
     },
     beforeUnmount() {
+        portal.cleanUp();
     }
 }
 </script>
