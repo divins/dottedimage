@@ -93,7 +93,7 @@ export default class ScatteringScene {
         this.renderer.setSize(this.threeOptions.sizes.width, this.threeOptions.sizes.height)
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-        this.threeOptions.clearColor = "#3f175f"; //'#1d1920'
+        this.threeOptions.clearColor = "#100318"; //'#1d1920'
         this.renderer.setClearColor(this.threeOptions.clearColor)
         this.gui.addColor(this.threeOptions, 'clearColor')
             .name('backgroundColor')
