@@ -5,15 +5,6 @@
     <button class="button">Text</button>
   </div>
   <canvas class="webgl"></canvas>
-  <div class="loading ended">Loading...</div>
-  <!-- <a
-    class="demo repo"
-    :title="links.repo.title"
-    :href="links.repo.href"
-    target="_blank"
-  >
-    {{ links.repo.label }}
-  </a> -->
   <p class="disclaimer">
     This demo has been created following a
     <a :href="links.author.href" :title="links.author.title" target="_blank">{{
@@ -79,27 +70,6 @@ export default {
 p.disclaimer {
   color: #eee;
 }
-
-.loading {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #100318;
-  text-align: center;
-  line-height: 50;
-  color: wheat;
-  font-size: 1.2rem;
-}
-.loading.ended {
-  pointer-events: none;
-  opacity: 0;
-  color: #100318;
-  transition: opacity 1.5s ease-in-out, color 0.5s ease-in-out;
-  transition-delay: 0.5s, 0.0s;
-}
-
 
 #controllers {
   position: fixed;
