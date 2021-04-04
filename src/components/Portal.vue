@@ -1,5 +1,6 @@
 <template>
   <canvas class="webgl"></canvas>
+  <div class="loading">Loading...</div>
   <a
     class="demo repo"
     :title="links.repo.title"
@@ -27,9 +28,6 @@ const portal = new PortalScene({});
 
 export default {
   name: "Portal",
-  props: {
-    msg: String
-  },
   data() {
     return {
       links: {
@@ -57,7 +55,7 @@ export default {
     console.log("Created");
   },
   mounted() {
-    portal.initialize();
+    portal.initialize({ backgroundColor: "#100318" });
     portal.startMagic();
   },
   beforeUnmount() {
@@ -75,5 +73,24 @@ export default {
 }
 p.disclaimer {
   color: #eee;
+}
+
+.loading {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #100318;
+  text-align: center;
+  line-height: 50;
+  color: wheat;
+  font-size: 1.2rem;
+}
+.loading.ended {
+  opacity: 0;
+  color: #100318;
+  transition: opacity 1.5s ease-in-out, color 0.5s ease-in-out;
+  transition-delay: 0.5s, 0.0s;
 }
 </style>

@@ -57,7 +57,9 @@ export default class PortalScene {
   /**
    * Initializers
    */
-  initialize() {
+  initialize(options) {
+    this.threeOptions.clearColor = options.backgroundColor;
+
     this.initializeScene();
     this.initializeLoaders();
     this.initializeCamera();
@@ -116,7 +118,6 @@ export default class PortalScene {
     );
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    this.threeOptions.clearColor = "#100318"; //'#1d1920'
     this.renderer.setClearColor(this.threeOptions.clearColor);
     this.gui
       .addColor(this.threeOptions, "clearColor")
@@ -176,6 +177,8 @@ export default class PortalScene {
 
   startMagic() {
     console.log("Let de magic happen!");
+    this.loadingElement = document.querySelector(".loading");
+
     this.fireflies();
     this.loadScene();
 
@@ -302,6 +305,8 @@ export default class PortalScene {
       this.portalLightMesh.material = this.portalLightMaterial;
       this.poleLightAMesh.material = this.poleLightMaterial;
       this.poleLightBMesh.material = this.poleLightMaterial;
+
+      this.loadingElement.classList.add("ended");
     });
   }
 
@@ -319,7 +324,7 @@ export default class PortalScene {
               uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
               uSize: { value: 100.0 },
               uColor: { value: new THREE.Color(0x98ff7d) },
-              uPositionBasedColor: { value: 0 }
+              uPositionBasedColor: { value: 0.33 }
             }
           });
 
