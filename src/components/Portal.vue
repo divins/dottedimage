@@ -88,6 +88,7 @@ p.disclaimer {
   font-size: 1.2rem;
 }
 .loading.ended {
+  pointer-events: none;
   opacity: 0;
   color: #100318;
   transition: opacity 1.5s ease-in-out, color 0.5s ease-in-out;

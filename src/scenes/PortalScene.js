@@ -90,6 +90,10 @@ export default class PortalScene {
     });
     this.controls = new OrbitControls(this.camera, this.canvas);
     this.controls.enableDamping = true;
+    this.controls.minDistance = 2;
+    this.controls.maxDistance = 10; // Infinity;
+    this.controls.maxPolarAngle = Math.PI/2;
+    this.controls.enablePan = false;
 
     this.stats = new Stats();
     let container = document.createElement("div");
