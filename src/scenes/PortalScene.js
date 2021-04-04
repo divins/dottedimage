@@ -202,8 +202,9 @@ export default class PortalScene {
     // Pole light material
     this.threeOptions.poleLight = {};
     this.threeOptions.poleLight.lampInnerColor = "#ffebc3";
-    this.gui
-      .addColor(this.threeOptions.poleLight, "lampInnerColor")
+
+    const lampFolder = this.gui.addFolder("Lamps");
+    lampFolder.addColor(this.threeOptions.poleLight, "lampInnerColor")
       .name("Lamp inner color")
       .onChange(() => {
         this.poleLightMaterial.uniforms.uInnerColor.value.set(
@@ -212,8 +213,7 @@ export default class PortalScene {
       });
 
     this.threeOptions.poleLight.lampOuterColor = "#e3a001";
-    this.gui
-      .addColor(this.threeOptions.poleLight, "lampOuterColor")
+    lampFolder.addColor(this.threeOptions.poleLight, "lampOuterColor")
       .name("Lamp outer color")
       .onChange(() => {
         this.poleLightMaterial.uniforms.uOuterColor.value.set(
@@ -239,8 +239,9 @@ export default class PortalScene {
     // Portal light material
     this.threeOptions.portal = {};
     this.threeOptions.portal.innerColor = "#240448";
-    this.gui
-      .addColor(this.threeOptions.portal, "innerColor")
+
+    const portalFolder = this.gui.addFolder("Portal");
+    portalFolder.addColor(this.threeOptions.portal, "innerColor")
       .name("Portal inner color")
       .onChange(() => {
         this.portalLightMaterial.uniforms.uInnerColor.value.set(
@@ -249,8 +250,7 @@ export default class PortalScene {
       });
 
     this.threeOptions.portal.outerColor = "#ba73e6";
-    this.gui
-      .addColor(this.threeOptions.portal, "outerColor")
+    portalFolder.addColor(this.threeOptions.portal, "outerColor")
       .name("Portal outer color")
       .onChange(() => {
         this.portalLightMaterial.uniforms.uOuterColor.value.set(
@@ -317,21 +317,40 @@ export default class PortalScene {
             uniforms: {
               uTime: { value: 0.0 },
               uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-              uSize: { value: 100.0 }
+              uSize: { value: 100.0 },
+              uColor: { value: new THREE.Color(0x98ff7d) },
+              uPositionBasedColor: { value: 0 }
             }
           });
 
         this.threeOptions.fireflies = {};
         this.threeOptions.fireflies.count = 30;
+        this.threeOptions.fireflies.color = 0x98ff7d;
+        this.threeOptions.fireflies.positionBasedColor = true;
 
-        this.gui.add(this.threeOptions.fireflies, "count")
-            .name("Fireflies count")
+        const firefliesFolder = this.gui.addFolder("Fireflies");
+
+        firefliesFolder.add(this.threeOptions.fireflies, "count")
+            .name("Amount")
             .min(1).max(1000).step(10)
             .onFinishChange(() => { this.generateFireflies(); });
 
-        this.gui.add(this.firefliesMat.uniforms.uSize, "value")
-            .name("Fireflies size")
+            firefliesFolder.add(this.firefliesMat.uniforms.uSize, "value")
+            .name("Size")
             .min(0).max(500).step(5);
+
+        this.threeOptions.fireflies.color = "#98ff7d";
+        firefliesFolder.addColor(this.threeOptions.fireflies, "color")
+            .name("Color")
+            .onChange(() => {
+            this.firefliesMat.uniforms.uColor.value.set(
+                this.threeOptions.fireflies.color
+            );
+        });
+
+        firefliesFolder.add(this.firefliesMat.uniforms.uPositionBasedColor, "value")
+            .min(0).max(1).step(0.01)
+            .name("Position based color mix");
 
         this.generateFireflies();
         
