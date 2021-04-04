@@ -68,6 +68,9 @@ export default class PortalScene {
   }
 
   initializeScene() {
+    this.loadingElement = document.querySelector(".loading");
+    this.loadingElement.classList.remove("ended");
+    
     this.scene = new THREE.Scene();
     this.canvas = document.querySelector("canvas.webgl");
 
@@ -181,7 +184,6 @@ export default class PortalScene {
 
   startMagic() {
     console.log("Let de magic happen!");
-    this.loadingElement = document.querySelector(".loading");
 
     this.fireflies();
     this.loadScene();

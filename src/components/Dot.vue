@@ -50,10 +50,7 @@ let points = null;
 let requestAnimationFrameId = null;
 
 export default {
-  name: "ToShaders",
-  props: {
-    msg: String
-  },
+  name: "Dot",
   data() {
     return {
       links: {
@@ -61,7 +58,7 @@ export default {
           title: "View source code for shaders animation",
           label: "< >",
           href:
-            "https://github.com/divins/dottedimage/blob/master/src/components/ToShaders.vue"
+            "https://github.com/divins/dottedimage/blob/master/src/components/Dot.vue"
         }
       },
       gridOptions: {

@@ -82,6 +82,7 @@ p.disclaimer {
   left: 0;
   right: 0;
   background-color: #100318;
+  opacity: 1;
   text-align: center;
   line-height: 50;
   color: wheat;
