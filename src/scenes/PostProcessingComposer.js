@@ -17,10 +17,8 @@ export default class PostProcessingComposer {
 
         if (params.renderer.getPixelRatio() === 1 && params.renderer.capabilities.isWebGL2) {
             RenderTargetClass = THREE.WebGLMultisampleRenderTarget;
-            console.log("Using WebGLMultisampleRenderTarget");
         } else {
             RenderTargetClass = THREE.WebGLRenderTarget;
-            console.log("Using WebGLRenderTarget");
         }
     
         const renderTarget = new RenderTargetClass(800, 600, {

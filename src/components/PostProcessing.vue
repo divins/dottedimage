@@ -72,17 +72,12 @@ export default {
     }
   },
   methods: {},
-  created() {
-    console.log("Created");
-  },
   mounted() {
-    console.log("Mounted");
     document.body.style.overflow = 'hidden';
     postProcessing.initialize();
     postProcessing.startMagic();
   },
   beforeUnmount() {
-    console.log("Before unmount");
     postProcessing.cleanUp();
   }
 };

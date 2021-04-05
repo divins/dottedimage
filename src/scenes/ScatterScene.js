@@ -41,8 +41,6 @@ export default class ScatterScene {
       this.threeOptions.sizes.height
     );
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    console.log("resize");
   }
 
   /**
@@ -140,7 +138,15 @@ export default class ScatterScene {
     const elapsedTime = this.clock.getElapsedTime();
     elapsedTime;
     // Update uTime mats uniforms
-    //this.firefliesMat.uniforms.uTime.value = elapsedTime;
+    if(this.skull.isActive){
+      this.skull.particlesMaterial.uniforms.uTime.value = elapsedTime;
+    }
+    if(this.horse.isActive){
+      this.horse.particlesMaterial.uniforms.uTime.value = elapsedTime;
+    }
+    if(this.text.isActive){
+      this.text.particlesMaterial.uniforms.uTime.value = elapsedTime;
+    }
 
     // Update tools
     this.stats.update();
@@ -160,7 +166,6 @@ export default class ScatterScene {
    */
 
    onMouseMove(event){
-     console.log("moving")
     const x = event.clientX;
     const y = event.clientY;
   
@@ -168,13 +173,9 @@ export default class ScatterScene {
       y: gsap.utils.mapRange(0, window.innerWidth, 0.8, -0.8, x),
       x: gsap.utils.mapRange(0, window.innerHeight, -0.1, -0.4, y)
     })
-    console.log(this.scene.rotation)
   }
 
   startMagic() {
-    console.log("Let de magic happen!");
-    //this.loadingElement = document.querySelector(".loading");
-
     this.prepareModels();
     this.setButtons();
 

@@ -9,7 +9,6 @@ import fragmentShader from "../shaders/scatter/fragment.glsl";
 
 class ScatterModel {
     constructor (obj) {
-        //console.log(obj);
         this.isActive = false;
         this.inTransition = false;
         this.name = obj.name;
@@ -30,8 +29,6 @@ class ScatterModel {
 
     init() {
         this.loader.load(this.file, (response) => {
-            //console.log(response)
-
             /*------------------------------
             Original Mesh
             ------------------------------*/
@@ -78,8 +75,6 @@ class ScatterModel {
                 'aRandomness',
                 new THREE.BufferAttribute(particlesRandomness, 3)
             );
-            //console.log(this.particlesGeometry)
-
             /**
              * Particles material
              */
@@ -106,8 +101,6 @@ class ScatterModel {
              * Geometry mesh
              */
             this.geometry = this.mesh.geometry;
-            //console.log(this.geometry);
-
             /**
              * Particles
              */
@@ -150,10 +143,7 @@ class ScatterModel {
 
             gsap.to('body', {
                 background: this.background,
-                duration: 0.8,
-                onComplete: () => {
-                    console.log(this.background);
-                }
+                duration: 0.8
             })
         }
     }

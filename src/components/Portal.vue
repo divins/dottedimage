@@ -51,9 +51,6 @@ export default {
     };
   },
   methods: {},
-  created() {
-    console.log("Created");
-  },
   mounted() {
     portal.initialize({ backgroundColor: "#100318" });
     portal.startMagic();

@@ -130,7 +130,6 @@ export default class PortalScene {
   initializeLoaders() {
     this.loadingManager = new THREE.LoadingManager(
         () => {
-            console.log("loaded");
             // With GSAP
             gsap.delayedCall(0.5, () => {
               gsap.to(this.threeObjects.overlay.mat.uniforms.uOpacity, {
@@ -250,7 +249,6 @@ export default class PortalScene {
    * Time to make things happen
    */
   startMagic() {
-    console.log("Let de magic happen!");
     this.loadEnvironmentMap();
     this.loadModel();
     this.setLights();
@@ -364,7 +362,6 @@ export default class PortalScene {
           }
         }
 
-        //console.log(screenPosition)
         const translateX = screenPosition.x * this.threeOptions.sizes.width * 0.5;
         const translateY = -screenPosition.y * this.threeOptions.sizes.height * 0.5;
 

@@ -47,9 +47,6 @@ export default {
     };
   },
   methods: {},
-  created() {
-    console.log("Created");
-  },
   mounted() {
     scatter.initialize();
     scatter.startMagic();

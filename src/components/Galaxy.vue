@@ -140,8 +140,6 @@ export default {
        */
       geometry = new THREE.BufferGeometry();
 
-      console.log(this.parameters.affectedAxes);
-
       const positions = new Float32Array(this.parameters.particleCount * 3);
       const colors = new Float32Array(this.parameters.particleCount * 3);
       const scale = new Float32Array(this.parameters.particleCount * 1);
@@ -385,18 +383,15 @@ export default {
     }
   },
   created() {
-    console.log("Created");
     this.setGuiControls();
   },
   mounted() {
-    console.log("Mounted");
     this.reset();
     this.initCanvas();
     this.generateGalaxy();
     this.tick();
   },
   beforeUnmount() {
-    console.log("Before unmount");
     this.cleanAll();
   }
 };

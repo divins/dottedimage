@@ -12,9 +12,7 @@ import lampVertexShader from "../shaders/lamps/vertex.glsl";
 import lampFragmentShader from "../shaders/lamps/fragment.glsl";
 
 export default class PortalScene {
-  constructor(options) {
-    this.message = options.message;
-    console.log(this.message);
+  constructor() {
     this.threeOptions = {};
     this.threeObjects = {
       geos: [],
@@ -46,7 +44,6 @@ export default class PortalScene {
     );
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    console.log("resize");
     // TODO
     this.firefliesMat.uniforms.uPixelRatio.value = Math.min(
       window.devicePixelRatio,
@@ -183,8 +180,6 @@ export default class PortalScene {
    */
 
   startMagic() {
-    console.log("Let de magic happen!");
-
     this.fireflies();
     this.loadScene();
 

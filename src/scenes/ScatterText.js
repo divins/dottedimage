@@ -9,7 +9,6 @@ import fragmentShader from "../shaders/scatter/fragment.glsl";
 
 class ScatterText {
     constructor (obj) {
-        //console.log(obj);
         this.isActive = false;
         this.inTransition = false;
         this.name = obj.name;
@@ -115,8 +114,6 @@ class ScatterText {
              * Geometry mesh
              */
             this.geometry = this.mesh.geometry;
-            //console.log(this.geometry);
-
             /**
              * Particles
              */
@@ -159,10 +156,7 @@ class ScatterText {
 
             gsap.to('body', {
                 background: this.background,
-                duration: 0.8,
-                onComplete: () => {
-                    console.log(this.background);
-                }
+                duration: 0.8
             })
         }
     }
