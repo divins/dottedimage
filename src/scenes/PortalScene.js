@@ -66,7 +66,7 @@ export default class PortalScene {
 
   initializeScene() {
     this.loadingElement = document.querySelector(".loading");
-    this.loadingElement.classList.remove("ended");
+    this.loadingElement.classList.remove("ended");    
     
     this.scene = new THREE.Scene();
     this.canvas = document.querySelector("canvas.webgl");
@@ -80,8 +80,21 @@ export default class PortalScene {
   }
 
   initializeLoaders() {
-    this.textureLoader = new THREE.TextureLoader();
-    this.gltfLoader = new GLTFLoader();
+    this.loadingManager = new THREE.LoadingManager(
+      () => {
+        this.loadingElement.classList.add("ended");
+      },
+      (itemUrl, itemsLoaded, itemsTotal) => {
+          //const progressRatio = itemsLoaded / itemsTotal;
+          itemUrl, itemsLoaded, itemsTotal
+      },
+      () => {
+          console.log("error");
+      }
+    );
+
+    this.textureLoader = new THREE.TextureLoader(this.loadingManager);
+    this.gltfLoader = new GLTFLoader(this.loadingManager);
   }
 
   initializeTooling() {
@@ -307,7 +320,7 @@ export default class PortalScene {
       this.poleLightAMesh.material = this.poleLightMaterial;
       this.poleLightBMesh.material = this.poleLightMaterial;
 
-      this.loadingElement.classList.add("ended");
+      //this.loadingElement.classList.add("ended");
     });
   }
 
