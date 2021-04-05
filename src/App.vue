@@ -4,7 +4,8 @@
     <router-link :to="{ name: 'Galaxy' }">Galaxy</router-link> |
     <router-link :to="{ name: 'PostProcessing' }">Post-Processing</router-link> |
     <router-link :to="{ name: 'Portal' }">Portal</router-link> |
-    <router-link :to="{ name: 'Scatter' }">Scatter</router-link> 
+    <router-link :to="{ name: 'Scatter' }">Scatter</router-link> | 
+    <router-link :to="{ name: 'HtmlMerge' }">Html-Merge</router-link>
   </div>
   <router-view />
 </template>

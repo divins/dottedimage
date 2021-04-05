@@ -30,6 +30,12 @@ const routes = [
     name: "Scatter",
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/ScatterView.vue")
+  },
+  {
+    path: "/html-webgl-merge",
+    name: "HtmlMerge",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/HtmlMergeView.vue")
   }
 ];
 
