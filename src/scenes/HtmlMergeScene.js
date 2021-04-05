@@ -240,8 +240,8 @@ export default class HtmlMergeScene {
     
   mouseMovement(){
     window.addEventListener( 'mousemove', (event)=>{
-      this.mouse.x = ( event.clientX / this.width ) * 2 - 1;
-      this.mouse.y = - ( event.clientY / this.height ) * 2 + 1;
+      this.mouse.x = ( event.clientX / this.threeOptions.sizes.width ) * 2 - 1;
+      this.mouse.y = - ( event.clientY / this.threeOptions.sizes.height ) * 2 + 1;
 
       // update the picking ray with the camera and mouse position
       this.raycaster.setFromCamera( this.mouse, this.camera );
@@ -250,7 +250,6 @@ export default class HtmlMergeScene {
       const intersects = this.raycaster.intersectObjects( this.scene.children );
 
       if(intersects.length>0){
-        // console.log(intersects[0]);
         let obj = intersects[0].object;
         obj.material.uniforms.hover.value = intersects[0].uv;
       }
