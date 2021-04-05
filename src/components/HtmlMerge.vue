@@ -5,6 +5,7 @@
         <header>
           <h1>Oceans</h1>
           <img src="/assets/images/header.jpg" alt="">
+          <h3>This demo is a bit fragile, don't bother to resize the screen (it's broken)...<br />Try to quickly and slowly scroll and hover on images to see what happens</h3>
         </header>
         <!-- BEGIN grid -->
         <div class="grid">
@@ -105,7 +106,8 @@
     </div>
     <!-- end scroll -->
 </main>
-<div id="container"></div>
+<canvas class="webgl"></canvas>
+
   <p class="disclaimer">
     This demo has been created following a
     <a :href="links.author.href" :title="links.author.title" target="_blank">{{
@@ -140,9 +142,9 @@ export default {
           href: "https://www.awwwards.com/academy/course/merging-webgl-and-html-worlds"
         },
         author: {
-          title: "Fabio Ottaviani Twitter",
-          label: "Favio Ottaviani",
-          href: "https://twitter.com/supahfunk"
+          title: "Yuri Artiukh Twitter",
+          label: "Yuri Artiukh",
+          href: "https://twitter.com/akella"
         }
       }
     };
@@ -151,9 +153,8 @@ export default {
   mounted() {
     document.body.style.background = 'none';
     document.body.style.overflow = 'auto';
-    /* htmlMerge.initialize();
-    htmlMerge.startMagic(); */
-    htmlMerge.toRefactor();
+    htmlMerge.initialize();
+    htmlMerge.startMagic();
   },
   beforeUnmount() {
     htmlMerge.cleanUp();
@@ -162,15 +163,22 @@ export default {
 </script>
 
 <style scoped>
-/* .webgl {
-  position: fixed;
-  top: 0;
-  left: 0;
-  outline: none;
-} */
-p.disclaimer {
-  color: #eee;
+.webgl {
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    left: 0;
 }
+p.disclaimer {
+  color: #333;
+}
+p.disclaimer a {
+  font-weight: 600;
+}
+
+
 *{
     margin: 0;
     padding: 0;
@@ -212,6 +220,10 @@ header img{
 h1,h2{
     font-family: 'Playfair Display', serif;
     font-weight: normal;
+}
+
+h3 {
+  margin-top: 15px;
 }
 
 /* grid */
@@ -300,14 +312,4 @@ h1,h2{
         max-width: none;
     }
 }
-
-#container{
-    height: 100vh;
-    width: 100vw;
-    position: fixed;
-    z-index: -1;
-    top: 0;
-    left: 0;
-}
-
 </style>

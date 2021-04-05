@@ -69,13 +69,12 @@ export default class HtmlMergeSceneScroll{
       // translates the scrollable element
       if (
         Math.round(this.scrollToRender) !==
-          Math.round(this.current) ||
+        Math.round(this.current) ||
         this.scrollToRender < 10
       ) {
         this.DOM.scrollable.style.transform = `translate3d(0,${-1 *
           this.scrollToRender}px,0)`;
       }
-
     }
 
     render() {

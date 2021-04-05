@@ -1,6 +1,4 @@
-import * as dat from "dat.gui";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import gsap from 'gsap';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -56,48 +54,29 @@ export default class HtmlMergeScene {
    */
   initialize() {
     this.initializeScene();
-    this.initializeLoaders();
     this.initializeCamera();
     this.initializeTooling();
     this.initializeRenderer();
+    this.initializeListeners();
+  }
+  
+  initializeListeners() {
+    window.addEventListener("resize", this.resize.bind(this));
+    this.mouseMovement();
   }
 
   initializeScene() {
     this.scene = new THREE.Scene();
     this.canvas = document.querySelector("canvas.webgl");
+    //this.container = document.getElementById('container')
 
     this.threeOptions.sizes = {
       width: window.innerWidth,
       height: window.innerHeight
     };
-
-    window.addEventListener("resize", this.resize.bind(this));
-  }
-
-  initializeLoaders() {
-    this.loadingManager = new THREE.LoadingManager(
-      () => {
-        console.log("loaded");
-        //this.loadingElement.classList.add("ended");
-      },
-      (itemUrl, itemsLoaded, itemsTotal) => {
-          //const progressRatio = itemsLoaded / itemsTotal;
-          itemUrl, itemsLoaded, itemsTotal
-      },
-      () => {
-          console.log("error");
-      }
-    );
-
-    this.textureLoader = new THREE.TextureLoader(this.loadingManager);
-    this.gltfLoader = new GLTFLoader(this.loadingManager);
   }
 
   initializeTooling() {
-    this.gui = new dat.GUI({
-      width: 400
-    });
-
     this.stats = new Stats();
     let container = document.createElement("div");
     container.setAttribute("id", "stats");
@@ -106,25 +85,20 @@ export default class HtmlMergeScene {
   }
 
   initializeCamera() {
-    /* this.camera = new THREE.PerspectiveCamera(70, this.aspectRatio(), 0.1, 100);
-    this.camera.position.z = 5; */
     this.camera = new THREE.PerspectiveCamera(70, this.aspectRatio(), 100, 2000);
     this.camera.position.z = 600;
     this.camera.fov = 2*Math.atan( (this.threeOptions.sizes.height/2)/600 )* (180/Math.PI);
-    this.scene.add(this.camera);
   }
 
   initializeRenderer() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true
+      antialias: true,
+      alpha: true
     });
     this.renderer.outputEncoding = THREE.sRGBEncoding;
-    this.renderer.setSize(
-      this.threeOptions.sizes.width,
-      this.threeOptions.sizes.height
-    );
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    //this.container.appendChild( this.renderer.domElement );
   }
 
   /**
@@ -141,7 +115,6 @@ export default class HtmlMergeScene {
       this.scene.remove(mesh);
     });
 
-    this.gui.destroy();
     var statsElement = document.getElementById("stats");
     statsElement.parentNode.removeChild(statsElement);
     cancelAnimationFrame(this.requestAnimationFrameId);
@@ -152,23 +125,25 @@ export default class HtmlMergeScene {
    */
   tick() {
     const elapsedTime = this.clock.getElapsedTime();
-    elapsedTime;
 
+    this.scroll.render();
+    this.previousScroll = this.currentScroll
+    this.currentScroll = this.scroll.scrollToRender;
     this.setPosition();
+
     // Update uTime mats uniforms
+    this.customPass.uniforms.scrollSpeed.value = this.scroll.speedTarget;
     this.customPass.uniforms.time.value = elapsedTime;
 
-    this.materials.forEach(m=>{
-      m.uniforms.time.value = this.time;
-  })
+    this.threeObjects.mats.forEach(material => {
+      material.uniforms.time.value = elapsedTime;
+    })
 
     // Update tools
     this.stats.update();
 
     // Render
-//    this.renderer.render(this.scene, this.camera);
     this.composer.render()
-
 
     // Call tick again on the next frame
     this.requestAnimationFrameId = window.requestAnimationFrame(
@@ -180,59 +155,21 @@ export default class HtmlMergeScene {
    * Time to make things happen
    */
   startMagic() {
-    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    /* geometry = new THREE.BoxGeometry( 1, 1, 1 );
     const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
     const cube = new THREE.Mesh( geometry, material );
-    this.scene.add( cube )
+    this.scene.add( cube )*/
 
-    this.toRefactor();
     this.clock = new THREE.Clock();
-    //this.tick();
+    this.preload();
   }
 
-  toRefactor() {
-    this.container = document.getElementById('container')
-    this.threeOptions.sizes = {
-      width: window.innerWidth,
-      height: window.innerHeight
-    };
-
-    this.time = 0;
-    this.scene = new THREE.Scene();
-
-    this.camera = new THREE.PerspectiveCamera( 70, this.aspectRatio(), 100, 2000 );
-    this.camera.position.z = 600;
-
-    this.camera.fov = 2*Math.atan( (this.threeOptions.sizes.height/2)/600 )* (180/Math.PI);
-
-    this.renderer = new THREE.WebGLRenderer( { 
-        antialias: true,
-        alpha: true
-    } );
-
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-    this.container.appendChild( this.renderer.domElement );
-    
-    this.images = [...document.querySelectorAll('img')];
-
-    /* const fontOpen = new Promise(resolve => {
-      new FontFaceObserver("Open Sans").load().then(() => {
-        resolve();
-      });
-    });
-
-    const fontPlayfair = new Promise(resolve => {
-      new FontFaceObserver("Playfair Display").load().then(() => {
-        resolve();
-      });
-    }); */
-
+  preload() {
     // Preload images
     const preloadImages = new Promise((resolve) => {
         imagesLoaded(document.querySelectorAll("img"), { background: true }, resolve);
     });
 
-    //let allDone = [fontOpen,fontPlayfair,preloadImages]
     let allDone = [preloadImages]
 
     this.currentScroll = 0;
@@ -241,33 +178,30 @@ export default class HtmlMergeScene {
     this.mouse = new THREE.Vector2();
 
     Promise.all(allDone).then(() => {
-      console.log("as promised")
-        this.scroll = new HtmlMergeSceneScroll();
-        this.addImages();
-        this.setPosition();
+      this.scroll = new HtmlMergeSceneScroll();
+      this.addImages();
+      this.setPosition();
 
-        this.mouseMovement()
-        this.resize()
-        //this.setupResize();
-        this.composerPass()
-        this.render();
+      this.mouseMovement()
+      this.resize()
+      this.composerPass()
+      this.tick();
     })
   }
 
-    composerPass(){
-      this.composer = new EffectComposer(this.renderer);
-      this.renderPass = new RenderPass(this.scene, this.camera);
-      this.composer.addPass(this.renderPass);
+  composerPass(){
+    this.composer = new EffectComposer(this.renderer);
+    this.renderPass = new RenderPass(this.scene, this.camera);
+    this.composer.addPass(this.renderPass);
 
-      //custom shader pass
-      //var counter = 0.0;
-      this.myEffect = {
-        uniforms: {
-          "tDiffuse": { value: null },
-          "scrollSpeed": { value: null },
-          "time": { value: null },
-        },
-        vertexShader: `
+    //custom shader pass
+    this.myEffect = {
+      uniforms: {
+        "tDiffuse": { value: null },
+        "scrollSpeed": { value: null },
+        "time": { value: null },
+      },
+      vertexShader: `
         varying vec2 vUv;
         void main() {
           vUv = uv;
@@ -275,8 +209,8 @@ export default class HtmlMergeScene {
             * modelViewMatrix 
             * vec4( position, 1.0 );
         }
-        `,
-        fragmentShader: `
+      `,
+      fragmentShader: `
         uniform sampler2D tDiffuse;
         varying vec2 vUv;
         uniform float scrollSpeed;
@@ -295,135 +229,96 @@ export default class HtmlMergeScene {
         gl_FragColor = mix(vec4(1.),texture2D( tDiffuse, newUV),n);
         // gl_FragColor = vec4(area,0.,0.,1.);
         }
-        `
-      }
-
-      this.customPass = new ShaderPass(this.myEffect);
-      this.customPass.renderToScreen = true;
-
-      this.composer.addPass(this.customPass);
+      `
     }
+
+    this.customPass = new ShaderPass(this.myEffect);
+    this.customPass.renderToScreen = true;
+
+    this.composer.addPass(this.customPass);
+  }
     
-    mouseMovement(){
-        window.addEventListener( 'mousemove', (event)=>{
-            this.mouse.x = ( event.clientX / this.threeOptions.sizes.width ) * 2 - 1;
-            this.mouse.y = - ( event.clientY / this.threeOptions.sizes.height ) * 2 + 1;
+  mouseMovement(){
+    window.addEventListener( 'mousemove', (event)=>{
+      this.mouse.x = ( event.clientX / this.width ) * 2 - 1;
+      this.mouse.y = - ( event.clientY / this.height ) * 2 + 1;
 
-            // update the picking ray with the camera and mouse position
-            this.raycaster.setFromCamera( this.mouse, this.camera );
+      // update the picking ray with the camera and mouse position
+      this.raycaster.setFromCamera( this.mouse, this.camera );
 
-            // calculate objects intersecting the picking ray
-            const intersects = this.raycaster.intersectObjects( this.scene.children );
+      // calculate objects intersecting the picking ray
+      const intersects = this.raycaster.intersectObjects( this.scene.children );
 
-            if(intersects.length>0){
-                // console.log(intersects[0]);
-                let obj = intersects[0].object;
-                obj.material.uniforms.hover.value = intersects[0].uv;
-            }
+      if(intersects.length>0){
+        // console.log(intersects[0]);
+        let obj = intersects[0].object;
+        obj.material.uniforms.hover.value = intersects[0].uv;
+      }
+    }, false );
+  }
 
-        }, false );
-    }
-/* 
-    setupResize(){
-        window.addEventListener('resize',this.resize.bind(this));
-    } */
+  addImages(){
+    this.images = [...document.querySelectorAll('img')];
 
-    /* resize(){
-        this.width = this.container.offsetWidth;
-        this.height = this.container.offsetHeight;
-        this.renderer.setSize( this.width,this.height );
-        this.camera.aspect = this.width/this.height;
-        this.camera.updateProjectionMatrix();
-    } */
+    this.material = new THREE.ShaderMaterial({
+      uniforms:{
+        time: {value:0},
+        uImage: {value:0},
+        hover: {value: new THREE.Vector2(0.5,0.5)},
+        hoverState: {value: 0},
+      },
+      side: THREE.DoubleSide,
+      fragmentShader: fragment,
+      vertexShader: vertex,
+    })
 
-    addImages(){
-        this.material = new THREE.ShaderMaterial({
-            uniforms:{
-                time: {value:0},
-                uImage: {value:0},
-                hover: {value: new THREE.Vector2(0.5,0.5)},
-                hoverState: {value: 0},
-            },
-            side: THREE.DoubleSide,
-            fragmentShader: fragment,
-            vertexShader: vertex,
+    this.imageStore = this.images.map(img => {
+      let bounds = img.getBoundingClientRect()
+
+      let geometry = new THREE.PlaneBufferGeometry(bounds.width,bounds.height,10,10);
+      this.threeObjects.geos.push(geometry);
+
+      let texture = new THREE.Texture(img);
+      texture.needsUpdate = true;
+
+      let material = this.material.clone();
+
+      img.addEventListener('mouseenter',()=>{
+        gsap.to(material.uniforms.hoverState,{
+          duration:1,
+          value:1,
+          ease: "power3.out"
         })
-
-        this.materials = []
-
-        this.imageStore = this.images.map(img=>{
-            let bounds = img.getBoundingClientRect()
-
-            let geometry = new THREE.PlaneBufferGeometry(bounds.width,bounds.height,10,10);
-            let texture = new THREE.Texture(img);
-            texture.needsUpdate = true;
-
-            let material = this.material.clone();
-
-            img.addEventListener('mouseenter',()=>{
-                gsap.to(material.uniforms.hoverState,{
-                    duration:1,
-                    value:1,
-                    ease: "power3.out"
-                })
-            })
-            img.addEventListener('mouseout',()=>{
-                gsap.to(material.uniforms.hoverState,{
-                    duration:1,
-                    value:0,
-                    ease: "power3.out"
-                })
-            })
-
-            this.materials.push(material)
-            material.uniforms.uImage.value = texture;
-            let mesh = new THREE.Mesh(geometry,material);
-            this.scene.add(mesh)
-
-            return {
-                img: img,
-                mesh: mesh,
-                top: bounds.top,
-                left: bounds.left,
-                width: bounds.width,
-                height: bounds.height
-            }
+      })
+      img.addEventListener('mouseout',()=>{
+        gsap.to(material.uniforms.hoverState,{
+          duration:1,
+          value:0,
+          ease: "power3.out"
         })
-        console.log(this.imageStore);
-    }
+      })
 
-    setPosition(){
-        this.imageStore.forEach(o=>{
-            o.mesh.position.y = this.currentScroll -o.top + this.threeOptions.sizes.height/2 - o.height/2;
-            o.mesh.position.x = o.left - this.threeOptions.sizes.width/2 + o.width/2;
-        })
-    }
+      this.threeObjects.mats.push(material)
+      material.uniforms.uImage.value = texture;
+      let mesh = new THREE.Mesh(geometry,material);
+      this.threeObjects.meshes.push(mesh);
+      this.scene.add(mesh)
 
-    render(){
-        this.time+=0.05;
-        
-        this.scroll.render();
-        this.previousScroll = this.currentScroll
+      return {
+        img: img,
+        mesh: mesh,
+        top: bounds.top,
+        left: bounds.left,
+        width: bounds.width,
+        height: bounds.height
+      }
+    })
+  }
 
-        this.currentScroll = this.scroll.scrollToRender;
-
-        // if(Math.round(this.currentScroll)!==Math.round(this.previousScroll)){
-            // console.log('should render');
-            this.setPosition();
-            this.customPass.uniforms.scrollSpeed.value = this.scroll.speedTarget;
-            this.customPass.uniforms.time.value = this.time;
-
-            // this.material.uniforms.time.value = this.time;
-
-            this.materials.forEach(m=>{
-                m.uniforms.time.value = this.time;
-            })
-
-            // this.renderer.render( this.scene, this.camera );
-            this.composer.render()
-        // }
-
-        
-        window.requestAnimationFrame(this.render.bind(this));
-    }
+  setPosition(){
+    this.imageStore.forEach(o => {
+      o.mesh.position.y = this.currentScroll -o.top + this.threeOptions.sizes.height/2 - o.height/2;
+      o.mesh.position.x = o.left - this.threeOptions.sizes.width/2 + o.width/2;
+    })
+  }
 }
