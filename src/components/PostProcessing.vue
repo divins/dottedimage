@@ -132,7 +132,7 @@ p.disclaimer {
   top: -20px;
   left: -20px;
   border-radius: 50%;
-  background: #00000077;
+  background: rgba(255, 125, 0, 0.47);
   color: #fff;
   font-family: Arial, Helvetica, sans-serif;
   text-align: center;
