@@ -28,10 +28,10 @@ export default {
     return {
       links: {
         repo: {
-          title: "View source code for Galaxy",
+          title: "View source code for Scatter",
           label: "< >",
           href:
-            "https://github.com/divins/dottedimage/blob/master/src/components/Portal.vue"
+            "https://github.com/divins/dottedimage/blob/master/src/scenes/ScatterScene.js"
         },
         tutorial: {
           title: "See followed tutorial",

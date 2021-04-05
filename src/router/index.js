@@ -17,7 +17,7 @@ const routes = [
     path: "/post-processing",
     name: "PostProcessing",
     component: () =>
-      import(/* webpackChunkName: "about" */ "../views/PostProcessing.vue")
+      import(/* webpackChunkName: "about" */ "../views/PostProcessingView.vue")
   },
   {
     path: "/portal",
