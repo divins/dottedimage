@@ -293,6 +293,8 @@ export default {
     }
   },
   mounted() {
+    document.body.style.background = 'none';
+    document.body.style.overflow = 'auto';
     this.initCanvas();
     this.tick();
   },

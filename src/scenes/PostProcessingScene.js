@@ -133,14 +133,16 @@ export default class PortalScene {
             console.log("loaded");
             // With GSAP
             gsap.delayedCall(0.5, () => {
-            gsap.to(this.threeObjects.overlay.mat.uniforms.uOpacity, {
-                duration: 3.0,
-                delay: 1.0,
-                value: 0.0
-            });
-            this.loadingBarElement.classList.add("ended");
-            this.loadingBarElement.style.transform = "";
-            this.threeState.ready = true;
+              gsap.to(this.threeObjects.overlay.mat.uniforms.uOpacity, {
+                  duration: 3.0,
+                  delay: 1.0,
+                  value: 0.0,
+                  onComplete: () => {
+                    this.threeState.ready = true;
+                  }
+              });
+              this.loadingBarElement.classList.add("ended");
+              this.loadingBarElement.style.transform = "";
             });
         },
         (itemUrl, itemsLoaded, itemsTotal) => {

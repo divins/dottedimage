@@ -77,6 +77,7 @@ export default {
   },
   mounted() {
     console.log("Mounted");
+    document.body.style.overflow = 'hidden';
     postProcessing.initialize();
     postProcessing.startMagic();
   },
@@ -86,12 +87,6 @@ export default {
   }
 };
 </script>
-
-<style>
-body {
-  overflow: hidden;
-}
-</style>
 
 <style scoped>
 .webgl {
