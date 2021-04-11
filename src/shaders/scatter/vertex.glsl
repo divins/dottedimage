@@ -1,7 +1,10 @@
 varying vec3 vPosition;
+attribute vec3 bPosition;
+attribute vec3 cPosition;
 uniform float uTime;
 attribute vec3 aRandomness;
 uniform float uScale;
+uniform float uMorph;
 
 void main() {
 
@@ -22,6 +25,19 @@ void main() {
     newPosition.z *= uScale + (cos(newPosition.x * 4.0 + time) * (1.0 - uScale));
 
     newPosition *= uScale;
+
+    //newPosition = mix(position, aToPosition, clamp((sin(uTime * 0.5 -2.0)), 0.0, 1.0));
+    newPosition = mix(position, bPosition, clamp(uMorph * 0.1, 0.0, 1.0));
+    newPosition = mix(newPosition, cPosition, clamp(uMorph * 0.1 - 1.0, 0.0, 1.0));
+
+    // mix(A, B, driver)
+    /*
+        newPostion = mix(A, B, clamp(driver, 0.0, 1.0));
+        newPosition = mix(newPosition, C, clamp(driver - 1.0, 0.0, 1.0));
+
+        A/B -> 0:1 -> driver - 0 -> 
+        B/C -> 1:2 -> driver - 1 -> 
+    */
 
     vec4 mvPosition = modelViewMatrix * vec4( newPosition, 1.0 );
     //gl_Position = projectionMatrix * mvPosition;

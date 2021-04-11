@@ -5,7 +5,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 
-import ScatterModel from './ScatterModel';
+//import ScatterModel from './ScatterModel';
+import ScatterModel from './ScatterMorph';
 import ScatterText from './ScatterText';
 
 export default class ScatterScene {
@@ -141,12 +142,12 @@ export default class ScatterScene {
     if(this.skull.isActive){
       this.skull.particlesMaterial.uniforms.uTime.value = elapsedTime;
     }
-    if(this.horse.isActive){
+    /* if(this.horse.isActive){
       this.horse.particlesMaterial.uniforms.uTime.value = elapsedTime;
     }
     if(this.text.isActive){
       this.text.particlesMaterial.uniforms.uTime.value = elapsedTime;
-    }
+    } */
 
     // Update tools
     this.stats.update();
@@ -177,7 +178,7 @@ export default class ScatterScene {
 
   startMagic() {
     this.prepareModels();
-    this.setButtons();
+    //this.setButtons();
 
     this.clock = new THREE.Clock();
     this.tick();
@@ -186,17 +187,21 @@ export default class ScatterScene {
     prepareModels() {
       this.skull = new ScatterModel({
         name: 'skull',
-        file: '/assets/models/skull.glb',
+        aFile: '/assets/models/skull.glb',
+        bFile: '/assets/models/horse.glb',
+        cFile: '/assets/models/mill.glb',
         scene: this.scene,
         color1: 0xff0000,
         color2: 0xffff00,
         background: '#47001b',
         placeOnLoad: true,
+        gui: this.gui
       });
 
-      this.horse = new ScatterModel({
+      /* this.horse = new ScatterModel({
         name: 'horse',
-        file: '/assets/models/horse.glb',
+        fromFile: '/assets/models/horse.glb',
+        toFile: '/assets/models/skull.glb',
         color1: 0x00ff00,
         color2: 0x00ffff,
         background: '#110047',
@@ -210,7 +215,8 @@ export default class ScatterScene {
         color2: 0xBCE954,
         background: '#254117',
         scene: this.scene
-      });     
+      }); */
+      ScatterText;
     }
 
     setButtons() {
