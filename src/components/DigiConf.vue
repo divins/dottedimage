@@ -29,10 +29,10 @@ export default {
     return {
       links: {
         repo: {
-          title: "View source code for Galaxy",
+          title: "View source code for DigiConf",
           label: "< >",
           href:
-            "https://github.com/divins/dottedimage/blob/master/src/scenes/PortalScene.js"
+            "https://github.com/divins/dottedimage/blob/master/src/scenes/DigiConfScene.js"
         },
         digiconf: {
           title: "View Digital Conference website",
