@@ -36,6 +36,12 @@ const routes = [
     name: "HtmlMerge",
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/HtmlMergeView.vue")
+  },
+  {
+    path: "/digi-conf",
+    name: "DigiConf",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/DigiConfView.vue")
   }
 ];
 
