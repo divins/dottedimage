@@ -1,6 +1,7 @@
 import * as dat from "dat.gui";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+//import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import Stats from "three/examples/jsm/libs/stats.module.js";
@@ -37,12 +38,6 @@ export default class DigiConfScene {
       this.threeOptions.sizes.height
     );
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    // TODO
-    this.firefliesMat.uniforms.uPixelRatio.value = Math.min(
-      window.devicePixelRatio,
-      2
-    );
   }
 
   /**
@@ -101,11 +96,9 @@ export default class DigiConfScene {
       width: 400
     });
     this.controls = new OrbitControls(this.camera, this.canvas);
-    this.controls.enableDamping = true;
-    this.controls.minDistance = 2;
-    this.controls.maxDistance = 10; // Infinity;
-    this.controls.maxPolarAngle = Math.PI/2;
-    this.controls.enablePan = false;
+    this.controls.target.set( 0, 2, 0 );
+    //this.controls.target = new THREE.Vector3(0,3,-1);
+    //this.controls = new PointerLockControls( this.camera, this.canvas );
 
     this.stats = new Stats();
     let container = document.createElement("div");
@@ -116,9 +109,9 @@ export default class DigiConfScene {
 
   initializeCamera() {
     this.camera = new THREE.PerspectiveCamera(45, this.aspectRatio(), 0.1, 100);
-    this.camera.position.x = 2;
-    this.camera.position.y = 3;
-    this.camera.position.z = 1;
+    this.camera.position.x = 0;
+    this.camera.position.y = 2;
+    this.camera.position.z = 0.01;
     this.scene.add(this.camera);
   }
 
@@ -172,6 +165,9 @@ export default class DigiConfScene {
     if(this.threeOptions.ready){
         // Update uTime mats uniforms
         this.material.uniforms.uTime.value = elapsedTime;
+//this.matLite.uniforms.uTime.value = elapsedTime;
+        this.boxMat.uniforms.uTime.value = elapsedTime;
+        
     }
 
     // Update tools
@@ -179,7 +175,12 @@ export default class DigiConfScene {
     this.controls.update();
 
     // Render
+    this.renderer.setRenderTarget(this.rt);
+    this.renderer.render(this.rtScene, this.rtCamera);
+    this.renderer.setRenderTarget(null);
     this.renderer.render(this.scene, this.camera);
+
+    //this.renderer.render(this.scene, this.camera);
 
     // Call tick again on the next frame
     this.requestAnimationFrameId = window.requestAnimationFrame(
@@ -192,6 +193,7 @@ export default class DigiConfScene {
    */
 
   startMagic() {
+    this.createRenderTarget();
     this.loadScene();
 
     this.clock = new THREE.Clock();
@@ -199,8 +201,320 @@ export default class DigiConfScene {
   }
 
   loadScene() {
-    //this.prepareSceneMaterials();
+    //this.loadLinks();
+    this.loadLinks2();
     this.loadModel();
+  }
+
+  createRenderTarget() {
+    // Render Target setup
+    this.rt = new THREE.WebGLRenderTarget(
+      window.innerWidth,
+      window.innerHeight,
+      { 
+        alpha: true,
+        antialias: true
+      }
+    );
+  
+    this.rtCamera = new THREE.PerspectiveCamera(45, this.aspectRatio(), 0.1, 100);
+    this.rtCamera.position.z = 3.5;
+  
+    this.rtScene = new THREE.Scene();
+    //this.rtScene.background = new THREE.Color("#00ff00");
+
+    //this.renderer.clearTarget(this.rt, true, true, true);
+  }
+
+  loadLinks2() {
+    const fontLoader = new THREE.FontLoader()
+    fontLoader.load(
+        '/assets/fonts/helvetiker_regular.typeface.json',
+        (font) => { 
+            const color = 0xffffff;
+            this.textMat = new THREE.MeshBasicMaterial( {
+                color: color,
+                transparent: true,
+                alphaTest: 0.001,
+                depthTest: false,
+                depthWrite: false
+                //side: THREE.DoubleSide
+            } );
+
+            const matDark = new THREE.LineBasicMaterial( {
+              color: color,
+              side: THREE.DoubleSide
+            } );
+
+            const shapes = font.generateShapes( "Another_link", 0.25 );
+            const geometry = new THREE.ShapeGeometry( shapes );
+            geometry.computeBoundingBox();
+            const xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+            geometry.translate( xMid, 0, 0 );
+            this.text2 = new THREE.Mesh( geometry, this.textMat );
+            //this.text2.position.z = -0.5;
+            //this.scene.add( this.text2 );
+
+            const holeShapes = [];
+
+					for ( let i = 0; i < shapes.length; i ++ ) {
+						const shape = shapes[ i ];
+						if ( shape.holes && shape.holes.length > 0 ) {
+							for ( let j = 0; j < shape.holes.length; j ++ ) {
+								const hole = shape.holes[ j ];
+								holeShapes.push( hole );
+							}
+						}
+					}
+					shapes.push.apply( shapes, holeShapes );
+					const lineText = new THREE.Object3D();
+					for ( let i = 0; i < shapes.length; i ++ ) {
+						const shape = shapes[ i ];
+						const points = shape.getPoints();
+
+						const geometry = new THREE.BufferGeometry().setFromPoints( points );
+						geometry.translate( xMid, 0, 0 );
+						const lineMesh = new THREE.Line( geometry, matDark );
+            //lineText.position.z = -0.48;
+
+						lineText.add( lineMesh );
+					}
+          this.rtScene.add(lineText);
+					//this.scene.add( this.text2 );
+
+          /**
+           * BOX
+           */
+          this.boxGeo = new THREE.CylinderGeometry(.5, .5, 0.2, 128, 5, true );
+
+          this.boxMat = new THREE.ShaderMaterial({
+            side: THREE.BackSide,
+            //transparent: true,
+            alphaTest: false,
+            //depthTest: false,
+            depthWrite: false,
+            vertexShader: `
+              uniform float uTime;
+              varying vec2 vUv;
+                      
+              void main(){
+                  vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                  
+                  vec4 viewPosition = viewMatrix * modelPosition;
+                  vec4 projectedPosition = projectionMatrix * viewPosition;
+                  gl_Position = projectedPosition;
+
+                  vUv = uv;
+              }
+            `,
+            fragmentShader: `
+              varying vec2 vUv;
+
+              uniform sampler2D uTexture;
+
+              uniform float uTime;
+
+              void main() {
+                float time = uTime * 0.15;
+
+                // Avoid the text appearing mirrored
+                vec2 invertedUv = vec2(1.0 - vUv.x, vUv.y);
+
+                // Repeat the texture n times
+                vec2 repeat = vec2(10., 1.); // columns, rows
+                //vec2 uv = fract(invertedUv * repeat);
+                vec2 repeatedUv = fract(invertedUv * repeat + vec2(-time, 0.));
+
+                // Try to scale texture
+                //float scale = 1.0/1.; // reciprocal scale
+                //vec2 uv = repeatedUv * mat2(scale, 0.0, 0.0, scale);
+                //uv.y += 0.2;
+
+                vec3 texture = texture2D(uTexture, repeatedUv).rgb;
+                //texture *= vec3(uv.x, uv.y, 1.);
+
+                gl_FragColor = vec4(texture, 1.);
+                //gl_FragColor = vec4(texture, 0.);
+                //gl_FragColor = vec4(vec3(0.0), 1.0);
+              }
+            `,
+            uniforms: {
+              uTime: { value: 0 },
+              uTexture: { value: this.rt.texture }
+            }
+          });
+          
+
+          this.boxMesh = new THREE.Mesh(this.boxGeo, this.boxMat);
+          this.boxMesh.position.y = 1.8;
+          this.scene.add(this.boxMesh);
+
+          this.boxMesh2 = new THREE.Mesh(this.boxGeo, this.boxMat);
+          this.boxMesh2.position.y = 2.;
+          this.scene.add(this.boxMesh2);
+        }
+    )    
+  }
+
+  loadLinks() {
+    const fontLoader = new THREE.FontLoader()
+    fontLoader.load(
+        '/assets/fonts/helvetiker_regular.typeface.json',
+        (font) => { 
+            const color = 0x006699;
+            this.matLite = new THREE.MeshBasicMaterial( {
+                color: color,
+                transparent: true,
+                opacity: 0.4,
+                side: THREE.DoubleSide
+            } );
+
+            const matDark = new THREE.LineBasicMaterial( {
+              color: color,
+              side: THREE.DoubleSide
+            } );
+
+            this.matLite = new THREE.ShaderMaterial({
+                wireframe: false,
+                transparent: true,
+                opacity: 0.6,
+                uniforms: { 
+                    uTime: { value: 0.0 }                 
+                },
+                side: THREE.DoubleSide,
+                vertexShader: `
+                    uniform float uTime;
+                    
+                    vec2 perp(vec2 val) {
+                      return vec2(-val.y, val.x);
+                    }
+                    void main(){
+                        float PI = 3.1415925;
+
+                        vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                        
+                        float frequency1 = 3.5;
+                        float amplitude1 = .2;
+                        float frequency2 = 2.5;
+                        float amplitude2 = .7;
+
+                        // Oscillate vertices up/down
+                        //modelPosition.y += (sin(modelPosition.x * frequency1 + uTime) * 0.5 + 0.5) * amplitude1;
+
+                        // Oscillate vertices inside/outside
+                        //modelPosition.z += (sin(modelPosition.x * frequency2 + uTime) * 0.5 + 0.5) * amplitude2;
+
+
+                        //modelPosition.x += tan(uTime) * 5.;
+                        //modelPosition.y = modelPosition.y + tan(modelPosition.x * 0.35 + uTime * 0.5) * .6;
+
+                        vec2 lineStart = vec2(-2.5, 0.0);
+                        vec2 lineEnd = vec2(2.5, 0.0);
+                        float bendFactor = -0.2;
+                        vec2 lineDir = lineEnd - lineStart;
+                        float lineLength = length(lineDir);
+                        float circleRad = lineLength / (bendFactor * 2.0 * PI);
+                        float pivot = 0.0;
+                        vec2 circleCenter = lineStart + (lineEnd - lineStart) * pivot + perp(lineDir) * circleRad; 
+                      
+                        float angle = PI + bendFactor * (1.0 - (modelPosition.x + pivot)) * 2.0 * PI;
+                        vec2 posOnCircle = circleCenter + vec2(cos(angle), sin(angle)) * circleRad;
+                        modelPosition.xz = posOnCircle.xy;
+                        modelPosition.x = modelPosition.x + 3.0;
+                        modelPosition.z = modelPosition.z + 20.0;
+                        
+                        vec4 viewPosition = viewMatrix * modelPosition;
+                        vec4 projectedPosition = projectionMatrix * viewPosition;
+                        gl_Position = projectedPosition;
+                    }
+                `,
+                fragmentShader: `    
+                    void main(){  
+                        gl_FragColor = vec4(vec3(1.0), 1.0);
+                    }
+                `
+              })
+              const shapes = font.generateShapes( "Link_to_something Link_to_something Link_to_something Link_to_something", 0.1 );
+            const geometry = new THREE.ShapeGeometry( shapes );
+            geometry.computeBoundingBox();
+            const xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+            geometry.translate( xMid, 0, 0 );
+            this.text = new THREE.Mesh( geometry, this.matLite );
+            this.text.position.z = -0.01;
+            this.scene.add( this.text );
+            this.text.position.x = 0.0;
+            this.text.position.z = 0.0;
+            //this.text.rotation.y = 0.25;
+
+            const holeShapes = [];
+
+					for ( let i = 0; i < shapes.length; i ++ ) {
+
+						const shape = shapes[ i ];
+
+						if ( shape.holes && shape.holes.length > 0 ) {
+
+							for ( let j = 0; j < shape.holes.length; j ++ ) {
+
+								const hole = shape.holes[ j ];
+								holeShapes.push( hole );
+
+							}
+
+						}
+
+					}
+
+					shapes.push.apply( shapes, holeShapes );
+
+					const lineText = new THREE.Object3D();
+
+					for ( let i = 0; i < shapes.length; i ++ ) {
+
+						const shape = shapes[ i ];
+
+						const points = shape.getPoints();
+						const geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+						geometry.translate( xMid, 0, 0 );
+
+						const lineMesh = new THREE.Line( geometry, matDark );
+						lineText.add( lineMesh );
+
+					}
+
+					this.scene.add( lineText );
+
+            /* const textGeometry = new THREE.TextBufferGeometry(
+                'Marc Divins!',
+                {
+                    font,
+                    size: 0.5,
+                    height: 0.2,
+                    curveSegments: 4, // lower for better performance (initially: 12)
+                    bevelEnabled: true,
+                    bevelThickness: 0.03, // Changes z
+                    bevelSize: 0.02, // Changes x & y
+                    bevelOffset: 0,
+                    bevelSegments: 3 // lower for better performance (initially: 5)
+                }
+            )
+            textGeometry.computeBoundingBox()
+            console.log(textGeometry.boundingBox)
+            /*textGeometry.translate(
+                -(textGeometry.boundingBox.max.x - 0.02) * 0.5,
+                -(textGeometry.boundingBox.max.y - 0.02) * 0.5,
+                -(textGeometry.boundingBox.max.z - 0.03) * 0.5
+            )*/
+            /* textGeometry.center()
+            console.log(textGeometry.boundingBox)
+            
+            const material = new THREE.MeshMatcapMaterial()
+
+            const text = new THREE.Mesh(textGeometry, material)
+            this.scene.add(text) */
+        }
+    )
   }
 
   loadModel() {
