@@ -166,7 +166,8 @@ export default class DigiConfScene {
         // Update uTime mats uniforms
         this.material.uniforms.uTime.value = elapsedTime;
 //this.matLite.uniforms.uTime.value = elapsedTime;
-        this.boxMat.uniforms.uTime.value = elapsedTime;
+this.boxMat.uniforms.uTime.value = elapsedTime;
+this.cylinderMat.uniforms.uTime.value = elapsedTime;
         
     }
 
@@ -193,6 +194,8 @@ export default class DigiConfScene {
    */
 
   startMagic() {
+    this.googleFont = new FontFace('train', 'https://fonts.googleapis.com/css2?family=Train+One&display=swap');
+    console.log(this.googleFont);
     this.createRenderTarget();
     this.loadScene();
 
@@ -203,7 +206,175 @@ export default class DigiConfScene {
   loadScene() {
     //this.loadLinks();
     this.loadLinks2();
+    this.loadLinks3();
     this.loadModel();
+  }
+
+  roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+
+  makeTextSprite( message, parameters )
+    {
+        if ( parameters === undefined ) parameters = {};
+        //var fontface = parameters.fontface || "Train One";
+        var fontface = this.googleFont;
+        var fontsize = parameters.fontsize || 64;
+        var borderThickness = parameters.borderThickness || 0;
+        //var borderColor = parameters.borderColor || { r:255, g:255, b:255, a:1.0 };
+        var backgroundColor = parameters.backgroundColor || { r:255, g:255, b:255, a:0.0 };
+        var textColor = parameters.textColor || { r:255, g:255, b:255, a:0.0 };
+
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('2d');
+        context.font = "Bold " + fontsize + "px " + fontface;
+        //var metrics = context.measureText( message );
+        //var textWidth = metrics.width;
+
+        context.fillStyle   = "rgba(" + backgroundColor.r + "," + backgroundColor.g + "," + backgroundColor.b + "," + backgroundColor.a + ")";
+        //context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + "," + borderColor.b + "," + borderColor.a + ")";
+
+        //context.lineWidth = borderThickness;
+        //this.roundRect(context, borderThickness/2, borderThickness/2, (textWidth + borderThickness) * 1.1, fontsize * 1.4 + borderThickness, 8);
+
+        context.fillStyle = "rgba("+textColor.r+", "+textColor.g+", "+textColor.b+", 1.0)";
+        context.fillText( message, borderThickness, fontsize + borderThickness);
+
+        return canvas;
+
+        /* var texture = new THREE.Texture(canvas) 
+        texture.needsUpdate = true;
+
+        var spriteMaterial = new THREE.SpriteMaterial( { map: texture, useScreenCoordinates: false } );
+        var sprite = new THREE.Sprite( spriteMaterial );
+        sprite.scale.set(0.5 * fontsize, 0.25 * fontsize, 0.75 * fontsize);
+        return sprite;   */
+    }
+
+  createTextCanvas(text, parameters = {}){
+    
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Prepare the font to be able to measure
+    let fontSize = parameters.fontSize || 56;
+    ctx.font = `${fontSize}px monospace`;
+    
+    const textMetrics = ctx.measureText(text);
+    
+    let width = textMetrics.width;
+    let height = fontSize;
+    
+    // Resize canvas to match text size 
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    
+    // Re-apply font since canvas is resized.
+    ctx.font = `${fontSize}px monospace`;
+    ctx.textAlign = parameters.align || "center" ;
+    ctx.textBaseline = parameters.baseline || "middle";
+    
+    // Make the canvas transparent for simplicity
+    ctx.fillStyle = "transparent";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    
+    ctx.fillStyle = parameters.color || "red";
+    ctx.fillText(text, width / 2, height / 2);
+    
+    return canvas;
+}
+
+  loadLinks3(){
+    const cubeGeo = new THREE.BoxBufferGeometry(1,1,1)
+    const cubeMat = new THREE.MeshBasicMaterial()
+    const cubeMesh = new THREE.Mesh(cubeGeo, cubeMat)
+    cubeMesh
+    //this.scene.add(cubeMesh)
+
+    //this.canvasTexture = new THREE.Texture(this.createTextCanvas("This is text", {fontSize: 128}));
+    this.canvasTexture = new THREE.Texture(this.makeTextSprite("This is text", {fontsize: 32}));
+    /* texture.generateMipmaps = false;
+      texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.minFilter = THREE.LinearFilter; */
+      this.canvasTexture.needsUpdate = true;
+      this.canvasGeo = new THREE.PlaneBufferGeometry(3, 0.5);
+      this.canvasMat = new THREE.MeshBasicMaterial({
+        transparent: true,
+        alphaTest: false,
+        depthTest: false,
+        depthWrite: false,
+        map: this.canvasTexture
+      });
+      this.canvasMesh = new THREE.Mesh(this.canvasGeo, this.canvasMat)
+
+      this.scene.add(this.canvasMesh);
+
+
+      this.cylinderGeo = new THREE.CylinderGeometry(.5, .5, 0.2, 128, 5, true );
+
+      this.cylinderMat = new THREE.ShaderMaterial({
+        side: THREE.BackSide,
+        transparent: true,
+        alphaTest: false,
+        //depthTest: false,
+        depthWrite: false,
+        vertexShader: `
+          uniform float uTime;
+          varying vec2 vUv;
+                  
+          void main(){
+              vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+              
+              vec4 viewPosition = viewMatrix * modelPosition;
+              vec4 projectedPosition = projectionMatrix * viewPosition;
+              gl_Position = projectedPosition;
+
+              vUv = uv;
+          }
+        `,
+        fragmentShader: `
+          varying vec2 vUv;
+
+          uniform sampler2D uTexture;
+
+          uniform float uTime;
+
+          void main() {
+            float time = uTime * 0.15;
+
+            vec2 newUV = vUv;
+
+            // Avoid the text appearing mirrored
+            newUV = vec2(1.0 - newUV.x, newUV.y);
+
+            // Repeat the texture n times
+            vec2 repeat = vec2(5., 1.); // columns, rows
+            //newUV = fract(newUV * repeat);
+            newUV = fract(newUV * repeat + vec2(-time, 0.));
+            //newUV += vec2(-time, 0.);
+
+            // Try to scale texture
+            //float scale = 1.0/0.5; // reciprocal scale
+            //newUV = newUV * mat2(scale, 0., 0., scale);
+            //newUV.y -= .8;
+
+            vec4 texture = texture2D(uTexture, newUV).rgba;
+            //texture *= vec3(newUV.x, newUV.y, 1.);
+
+            gl_FragColor = vec4(texture);
+            //gl_FragColor = vec4(texture, 0.);
+            //gl_FragColor = vec4(vec3(0.0), 1.0);
+          }
+        `,
+        uniforms: {
+          uTime: { value: 0 },
+          uTexture: { value: this.canvasTexture }
+        }
+      });
+
+      this.cylinderMesh = new THREE.Mesh(this.cylinderGeo, this.cylinderMat);
+      this.cylinderMesh.position.y = 2.1;
+      this.scene.add(this.cylinderMesh);
   }
 
   createRenderTarget() {

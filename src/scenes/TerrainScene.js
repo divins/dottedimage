@@ -1,10 +1,12 @@
 import * as dat from "dat.gui";
+import Guify from 'guify';
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 
-//import firefliesVertexShader from "../shaders/fireflies/vertex.glsl";
+import terrainVertexShader from "../shaders/terrain/vertex.glsl";
+import terrainFragmentShader from "../shaders/terrain/fragment.glsl";
 
 export default class TerrainScene {
   constructor() {
@@ -93,6 +95,12 @@ export default class TerrainScene {
   }
 
   initializeTooling() {
+    this.guify = new Guify({
+      title: "Some Title",
+      align: "right",
+      theme: "dark",
+      barMode: "none"
+    });
     this.gui = new dat.GUI({
       width: 400
     });
@@ -112,9 +120,9 @@ export default class TerrainScene {
 
   initializeCamera() {
     this.camera = new THREE.PerspectiveCamera(45, this.aspectRatio(), 0.1, 100);
-    this.camera.position.x = 4;
-    this.camera.position.y = 2;
-    this.camera.position.z = 6;
+    this.camera.position.x = 0;
+    this.camera.position.y = 0;
+    this.camera.position.z = 5;
     this.scene.add(this.camera);
   }
 
@@ -194,11 +202,69 @@ export default class TerrainScene {
 
   loadScene() {
     this.loadingElement.classList.add("ended");
-    const boxGeo = new THREE.BoxGeometry(2, 2, 2);
-    const boxMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ff00
+
+    /* 
+    / TERRAIN
+    */
+    const terrain = {};
+
+    terrain.texture = {};
+    terrain.texture.linesCount = 5;
+    terrain.texture.width = 32;
+    terrain.texture.height = 128;
+    terrain.texture.canvas = document.createElement("canvas");
+    terrain.texture.canvas.width = terrain.texture.width;
+    terrain.texture.canvas.height = terrain.texture.height;
+    terrain.texture.canvas.style.position = "fixed";
+    terrain.texture.canvas.style.top = 0;
+    terrain.texture.canvas.style.left = 0;
+    terrain.texture.canvas.style.zIndex = 1;
+    document.body.append(terrain.texture.canvas);
+
+    terrain.texture.context = terrain.texture.canvas.getContext("2d");
+
+    terrain.texture.instance = new THREE.CanvasTexture(terrain.texture.canvas);
+    terrain.texture.instance.wrapS = THREE.RepeatWrapping;
+    terrain.texture.instance.wrapT = THREE.RepeatWrapping;
+
+    terrain.texture.update = () => {
+      terrain.texture.context.clearRect(0, 0, terrain.texture.width, terrain.texture.height);
+      terrain.texture.context.fillStyle = "red";
+      terrain.texture.context.fillRect(0, Math.round(terrain.texture.width * 0), terrain.texture.width, 4);
+      terrain.texture.context.fillStyle = "blue";
+      terrain.texture.context.fillRect(0, Math.round(terrain.texture.width * 0.45), terrain.texture.width, 10);
+      terrain.texture.context.fillStyle = "green";
+      terrain.texture.context.fillRect(0, Math.round(terrain.texture.width * 0.9), terrain.texture.width, 4);  
+    };
+
+    terrain.texture.update();
+
+
+    terrain.geo = new THREE.PlaneGeometry(1, 1, 1000, 1000);
+    terrain.geo.rotateX(-Math.PI * 0.5);
+    terrain.mat = new THREE.ShaderMaterial({
+      vertexShader: terrainVertexShader,
+      fragmentShader: terrainFragmentShader,
+      transparent: true,
+      side: THREE.DoubleSide, //needed?
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        uElevation: {value: 2},
+        uTexture: {value: terrain.texture.instance}
+      }
     });
-    const boxMesh = new THREE.Mesh(boxGeo, boxMaterial);
-    this.scene.add(boxMesh);
+    terrain.mesh = new THREE.Mesh(terrain.geo, terrain.mat);
+    terrain.mesh.scale.set(10, 10, 10);
+    this.scene.add(terrain.mesh);
+
+    this.guify.Register({
+      type: "range",
+      object: terrain.mat.uniforms.uElevation,
+      property: "value",
+      label: "uElevation",
+      min: 0,
+      max: 5,
+      step: 0.001
+    })
   }
 }

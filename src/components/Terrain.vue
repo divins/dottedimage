@@ -52,7 +52,7 @@ export default {
   },
   methods: {},
   mounted() {
-    terrain.initialize({ backgroundColor: "#ffff00" });
+    terrain.initialize({ backgroundColor: "#222" });
     terrain.startMagic();
   },
   beforeUnmount() {
