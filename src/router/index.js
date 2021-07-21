@@ -42,6 +42,12 @@ const routes = [
     name: "DigiConf",
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/DigiConfView.vue")
+  },
+  {
+    path: "/terrain",
+    name: "Terrain",
+    component: () =>
+      import(/* webpackChunkName: "about" */ "../views/TerrainView.vue")
   }
 ];
 
