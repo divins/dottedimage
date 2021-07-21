@@ -14,7 +14,7 @@
     <a :href="links.brunos.href" :title="links.brunos.title" target="_blank">{{
       links.brunos.label
     }}</a>
-    tutorial. Give it a
+    stream. Give it a
     <a :href="links.tutorial.href" :title="links.tutorial.title" target="_blank"
       >try</a
     >!

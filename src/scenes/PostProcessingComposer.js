@@ -9,78 +9,95 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { RGBShiftShader } from "three/examples/jsm/shaders/RGBShiftShader.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { PixelShader } from "three/examples/jsm/shaders/PixelShader.js";
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 
 export default class PostProcessingComposer {
-    constructor(params) {
-        // Render target
-        let RenderTargetClass = null;
+  constructor(params) {
+    // "Saving" params
+    this.scene = params.scene;
+    this.camera = params.camera;
+    this.sizes = {};
+    this.sizes.width = params.sizes.width;
+    this.sizes.height = params.sizes.height;
+    this.sizes.pixelRatio = params.renderer.getPixelRatio();
 
-        if (params.renderer.getPixelRatio() === 1 && params.renderer.capabilities.isWebGL2) {
-            RenderTargetClass = THREE.WebGLMultisampleRenderTarget;
-        } else {
-            RenderTargetClass = THREE.WebGLRenderTarget;
-        }
+    // Render target
+    let RenderTargetClass = null;
+
+    if (params.renderer.getPixelRatio() === 1 && params.renderer.capabilities.isWebGL2) {
+      RenderTargetClass = THREE.WebGLMultisampleRenderTarget;
+    } else {
+      RenderTargetClass = THREE.WebGLRenderTarget;
+    }
+
+    const renderTarget = new RenderTargetClass(800, 600, {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat,
+      encoding: THREE.sRGBEncoding
+    });
+    // Composer
+    this.effectComposer = new EffectComposer(params.renderer, renderTarget);
+    this.effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.effectComposer.setSize(params.sizes.width, params.sizes.height);
+
+    // Passes
+    this.renderPass = new RenderPass(params.scene, params.camera);
+    this.effectComposer.addPass(this.renderPass);
+  }
+
+  resize(width, height){
+    this.effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.effectComposer.setSize(
+      width,
+      height
+    );
+  }
     
-        const renderTarget = new RenderTargetClass(800, 600, {
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter,
-            format: THREE.RGBAFormat,
-            encoding: THREE.sRGBEncoding
-        });
-        // Composer
-        this.effectComposer = new EffectComposer(params.renderer, renderTarget);
-        this.effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        this.effectComposer.setSize(params.sizes.width, params.sizes.height);
-    
-        // Passes
-        this.renderPass = new RenderPass(params.scene, params.camera);
-        this.effectComposer.addPass(this.renderPass);
+  addSMAAPass(renderer) {
+    // Remember that passes have an order, we want to apply antialsing the last
+    if (renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2) {
+      const smaaPass = new SMAAPass();
+      this.effectComposer.addPass(smaaPass);
     }
-    
-    addSMAAPass(renderer) {
-        // Remember that passes have an order, we want to apply antialsing the last
-        if (renderer.getPixelRatio() === 1 && !renderer.capabilities.isWebGL2) {
-            const smaaPass = new SMAAPass();
-            this.effectComposer.addPass(smaaPass);
-        }
-    }
+  }
 
-    addDotScreenPass(gui, isEnabled = false) {
-        const dotScreenPass = new DotScreenPass();
-        dotScreenPass.enabled = isEnabled;
-        this.effectComposer.addPass(dotScreenPass);
+  addDotScreenPass(gui, isEnabled = false) {
+    const dotScreenPass = new DotScreenPass();
+    dotScreenPass.enabled = isEnabled;
+    this.effectComposer.addPass(dotScreenPass);
 
-        gui.add(dotScreenPass, "enabled")
-            .name("Enable Dotted Screen");
-    }
+    gui.add(dotScreenPass, "enabled")
+      .name("Enable Dotted Screen");
+  }
 
-    addGlitchPass(gui, isEnabled = false) {
-        const glitchPass = new GlitchPass();
-        glitchPass.enabled = isEnabled;
-        this.effectComposer.addPass(glitchPass);
+  addGlitchPass(gui, isEnabled = false) {
+    const glitchPass = new GlitchPass();
+    glitchPass.enabled = isEnabled;
+    this.effectComposer.addPass(glitchPass);
 
-        gui.add(glitchPass, "enabled")
-            .name("Enable Glitch");
-    }
+    gui.add(glitchPass, "enabled")
+      .name("Enable Glitch");
+  }
 
-    addRGBShiftPass(gui, isEnabled = false) {
-        const rgbShiftPass = new ShaderPass(RGBShiftShader);
-        //rgbShiftPass.uniforms.amount.value = 0.0025;
-        rgbShiftPass.enabled = isEnabled;
-        this.effectComposer.addPass(rgbShiftPass);
+  addRGBShiftPass(gui, isEnabled = false) {
+    const rgbShiftPass = new ShaderPass(RGBShiftShader);
+    //rgbShiftPass.uniforms.amount.value = 0.0025;
+    rgbShiftPass.enabled = isEnabled;
+    this.effectComposer.addPass(rgbShiftPass);
 
-        const rgbShiftFolder = gui.addFolder("RGB Shift");
-        rgbShiftFolder.add(rgbShiftPass, "enabled")
-            .name("Enable RGB Shift");
-        rgbShiftFolder.add( rgbShiftPass.uniforms.amount, "value")
-            .min(0).max(1).step(0.0001)
-            .name("Amount")
-            .listen();
-        rgbShiftFolder.add( rgbShiftPass.uniforms.amount, "value")
-            .min(0).max(0.1).step(0.0001)
-            .name("Grained amount")
-            .listen();        
-    }
+    const rgbShiftFolder = gui.addFolder("RGB Shift");
+    rgbShiftFolder.add(rgbShiftPass, "enabled")
+      .name("Enable RGB Shift");
+    rgbShiftFolder.add( rgbShiftPass.uniforms.amount, "value")
+      .min(0).max(1).step(0.0001)
+      .name("Amount")
+      .listen();
+    rgbShiftFolder.add( rgbShiftPass.uniforms.amount, "value")
+      .min(0).max(0.1).step(0.0001)
+      .name("Grained amount")
+      .listen();        
+  }
 
     addUnrealBloomPass(gui, isEnabled = false) {
         const unrealBloomPass = new UnrealBloomPass();
@@ -339,5 +356,33 @@ export default class PostProcessingComposer {
         crtFolder.add(crtPass.material.uniforms.brightness, "value")
         .min(-1).max(5).step(0.01)
         .name("brightness");        
+    }
+
+    addBokehPass(gui, isEnabled = false) {
+      const bokehPass = new BokehPass(
+        this.scene,
+        this.camera,
+        {
+          focus: 2.0,
+          aperture: 0.003,
+          maxblur: 0.005,
+          width: this.sizes.width * this.sizes.pixelRatio,
+          height: this.sizes.height * this.sizes.pixelRatio
+        }
+      );
+      bokehPass.enabled = isEnabled;
+      this.effectComposer.addPass(bokehPass);
+
+      gui.add(bokehPass, "enabled")
+        .name("Enable Bokeh");
+      gui.add(bokehPass.materialBokeh.uniforms.focus, "value")
+        .min(0).max(10).step(0.1)
+        .name("Focus");
+      gui.add(bokehPass.materialBokeh.uniforms.aperture, "value")
+        .min(0).max(0.1).step(0.0001)
+        .name("Aperture");
+      gui.add(bokehPass.materialBokeh.uniforms.maxblur, "value")
+        .min(0).max(0.05).step(0.0001)
+        .name("Max Blur");
     }
 }

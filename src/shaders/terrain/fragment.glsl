@@ -1,8 +1,9 @@
 varying float vElevation;
 uniform sampler2D uTexture;
+uniform float uTextureMultiplier;
 
 void main(){
-    vec4 textureColor = texture2D(uTexture, vec2(0.0, vElevation * 10.0));
+    vec4 textureColor = texture2D(uTexture, vec2(0.0, vElevation * uTextureMultiplier));
 
     /* vec3 color = vec3(vElevation + 0.5);
     float alpha = mod(vElevation * 30.0, 1.0);

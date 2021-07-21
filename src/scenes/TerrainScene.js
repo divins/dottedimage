@@ -8,6 +8,8 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 import terrainVertexShader from "../shaders/terrain/vertex.glsl";
 import terrainFragmentShader from "../shaders/terrain/fragment.glsl";
 
+import PostProcessingComposer from './PostProcessingComposer';
+
 export default class TerrainScene {
   constructor() {
     this.threeOptions = {};
@@ -40,6 +42,15 @@ export default class TerrainScene {
       this.threeOptions.sizes.height
     );
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+     // Update composer
+     this.postProcessingComposer.resize(
+      this.threeOptions.sizes.width,
+      this.threeOptions.sizes.height
+     );
+     // TODO: We still need to update bokeh sizes!
+     // bokehPass.renderTargetDepth.width = sizes.width * sizes.pixelRatio
+     // bokehPass.renderTargetDepth.height = sizes.height * sizes.pixelRatio
 
     // TODO
     /* this.firefliesMat.uniforms.uPixelRatio.value = Math.min(
@@ -171,17 +182,18 @@ export default class TerrainScene {
    * Update
    */
   tick() {
-    //const elapsedTime = this.clock.getElapsedTime();
+    const elapsedTime = this.clock.getElapsedTime();
 
     // Update uTime mats uniforms
-    //this.firefliesMat.uniforms.uTime.value = elapsedTime;
+    this.terrain.mat.uniforms.uTime.value = elapsedTime;
 
     // Update tools
     this.stats.update();
     this.controls.update();
 
     // Render
-    this.renderer.render(this.scene, this.camera);
+    //this.renderer.render(this.scene, this.camera);
+    this.postProcessingComposer.effectComposer.render();
 
     // Call tick again on the next frame
     this.requestAnimationFrameId = window.requestAnimationFrame(
@@ -195,6 +207,8 @@ export default class TerrainScene {
 
   startMagic() {
     this.loadScene();
+    this.prepareEffectComposer();
+    this.addPasses();
 
     this.clock = new THREE.Clock();
     this.tick();
@@ -206,43 +220,98 @@ export default class TerrainScene {
     /* 
     / TERRAIN
     */
-    const terrain = {};
+    this.terrain = {};
 
-    terrain.texture = {};
-    terrain.texture.linesCount = 5;
-    terrain.texture.width = 32;
-    terrain.texture.height = 128;
-    terrain.texture.canvas = document.createElement("canvas");
-    terrain.texture.canvas.width = terrain.texture.width;
-    terrain.texture.canvas.height = terrain.texture.height;
-    terrain.texture.canvas.style.position = "fixed";
-    terrain.texture.canvas.style.top = 0;
-    terrain.texture.canvas.style.left = 0;
-    terrain.texture.canvas.style.zIndex = 1;
-    document.body.append(terrain.texture.canvas);
+    // Texture
+    this.terrain.texture = {};
+    this.terrain.texture.linesCount = 5;
+    this.terrain.texture.bigLineWidth = 0.04;
+    this.terrain.texture.smallLineWidth = 0.01;
+    this.terrain.texture.smallLineAlpha = 0.5;
+    this.terrain.texture.width = 32;
+    this.terrain.texture.height = 128;
+    this.terrain.texture.canvas = document.createElement("canvas");
+    this.terrain.texture.canvas.width = this.terrain.texture.width;
+    this.terrain.texture.canvas.height = this.terrain.texture.height;
+    this.terrain.texture.canvas.style.position = "fixed";
+    this.terrain.texture.canvas.style.top = 0;
+    this.terrain.texture.canvas.style.left = 0;
+    this.terrain.texture.canvas.style.zIndex = 1;
+    document.body.append(this.terrain.texture.canvas);
 
-    terrain.texture.context = terrain.texture.canvas.getContext("2d");
+    this.terrain.texture.context = this.terrain.texture.canvas.getContext("2d");
 
-    terrain.texture.instance = new THREE.CanvasTexture(terrain.texture.canvas);
-    terrain.texture.instance.wrapS = THREE.RepeatWrapping;
-    terrain.texture.instance.wrapT = THREE.RepeatWrapping;
+    this.terrain.texture.instance = new THREE.CanvasTexture(this.terrain.texture.canvas);
+    this.terrain.texture.instance.wrapS = THREE.RepeatWrapping;
+    this.terrain.texture.instance.wrapT = THREE.RepeatWrapping;
+    //terrain.texture.instance.magFilter = THREE.NearestFilter; // TODO: Don't like it...
 
-    terrain.texture.update = () => {
-      terrain.texture.context.clearRect(0, 0, terrain.texture.width, terrain.texture.height);
-      terrain.texture.context.fillStyle = "red";
-      terrain.texture.context.fillRect(0, Math.round(terrain.texture.width * 0), terrain.texture.width, 4);
-      terrain.texture.context.fillStyle = "blue";
-      terrain.texture.context.fillRect(0, Math.round(terrain.texture.width * 0.45), terrain.texture.width, 10);
-      terrain.texture.context.fillStyle = "green";
-      terrain.texture.context.fillRect(0, Math.round(terrain.texture.width * 0.9), terrain.texture.width, 4);  
+    this.terrain.texture.update = () => {
+      this.terrain.texture.context.clearRect(0, 0, this.terrain.texture.width, this.terrain.texture.height);
+      this.terrain.texture.context.fillStyle = "#ffffff";
+
+      // Thicker first line
+      this.terrain.texture.context.globalAlpha = 1;
+      const actualBigLineWidth = Math.round(this.terrain.texture.height * this.terrain.texture.bigLineWidth);
+      this.terrain.texture.context.fillRect(
+        0,
+        0,
+        this.terrain.texture.width,
+        actualBigLineWidth
+      );
+
+      // Thiner lines
+      const actualSmallLineWidth = Math.round(this.terrain.texture.height * this.terrain.texture.smallLineWidth);
+      const smallLinesCount = this.terrain.texture.linesCount - 1;
+      for (let i = 0; i < smallLinesCount; i++) {
+        this.terrain.texture.context.globalAlpha = this.terrain.texture.smallLineAlpha;
+        this.terrain.texture.context.fillRect(
+          0,
+          actualBigLineWidth + Math.round((this.terrain.texture.height - actualBigLineWidth) / this.terrain.texture.linesCount * (i + 1)),
+          this.terrain.texture.width,
+          actualSmallLineWidth
+        );
+      }
+
+      // Update texture instance
+      this.terrain.texture.instance.needsUpdate = true;
     };
 
-    terrain.texture.update();
+    this.terrain.texture.update();
 
+    this.guify.Register({
+      type: "range", label: "Lines Count",
+      object: this.terrain.texture,
+      property: "linesCount",
+      min: 1, max: 10, step: 1,
+      onChange: this.terrain.texture.update
+    });
+    this.guify.Register({
+      type: "range", label: "Big Line Width",
+      object: this.terrain.texture,
+      property: "bigLineWidth",
+      min: 0.01, max: 0.4, step: 0.01,
+      onChange: this.terrain.texture.update
+    });
+    this.guify.Register({
+      type: "range", label: "Small Line Width",
+      object: this.terrain.texture,
+      property: "smallLineWidth",
+      min: 0.01, max: 0.1, step: 0.01,
+      onChange: this.terrain.texture.update
+    });
+    this.guify.Register({
+      type: "range", label: "Small Line Alpha",
+      object: this.terrain.texture,
+      property: "smallLineAlpha",
+      min: 0.05, max: 1, step: 0.01,
+      onChange: this.terrain.texture.update
+    });
 
-    terrain.geo = new THREE.PlaneGeometry(1, 1, 1000, 1000);
-    terrain.geo.rotateX(-Math.PI * 0.5);
-    terrain.mat = new THREE.ShaderMaterial({
+    // Preparing mesh
+    this.terrain.geo = new THREE.PlaneGeometry(1, 1, 1000, 1000);
+    this.terrain.geo.rotateX(-Math.PI * 0.5);
+    this.terrain.mat = new THREE.ShaderMaterial({
       vertexShader: terrainVertexShader,
       fragmentShader: terrainFragmentShader,
       transparent: true,
@@ -250,21 +319,42 @@ export default class TerrainScene {
       blending: THREE.AdditiveBlending,
       uniforms: {
         uElevation: {value: 2},
-        uTexture: {value: terrain.texture.instance}
+        uTexture: {value: this.terrain.texture.instance},
+        uTextureMultiplier: {value: 10},
+        uTime: {value: 0}
       }
     });
-    terrain.mesh = new THREE.Mesh(terrain.geo, terrain.mat);
-    terrain.mesh.scale.set(10, 10, 10);
-    this.scene.add(terrain.mesh);
+    this.terrain.mesh = new THREE.Mesh(this.terrain.geo, this.terrain.mat);
+    this.terrain.mesh.scale.set(10, 10, 10);
+    this.scene.add(this.terrain.mesh);
 
     this.guify.Register({
-      type: "range",
-      object: terrain.mat.uniforms.uElevation,
+      type: "range", label: "uElevation",
+      object: this.terrain.mat.uniforms.uElevation,
       property: "value",
-      label: "uElevation",
-      min: 0,
-      max: 5,
-      step: 0.001
-    })
+      min: 0, max: 5, step: 0.001
+    });
+    this.guify.Register({
+      type: "range", label: "uTextureMultiplier",
+      object: this.terrain.mat.uniforms.uTextureMultiplier,
+      property: "value",
+      min: 0, max: 50, step: 1
+    });
   }
+
+  prepareEffectComposer() {
+    this.postProcessingComposer = new PostProcessingComposer({
+      scene: this.scene,
+      renderer: this.renderer,
+      sizes: this.threeOptions.sizes,
+      camera: this.camera
+    });
+  }
+
+  addPasses() {
+    this.postProcessingComposer.addBokehPass(this.gui, true);
+
+    this.postProcessingComposer.addSMAAPass(this.renderer);
+  }
+
 }
